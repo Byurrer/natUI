@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>natUI</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)_d</TargetName>
+    <IncludePath>../../../source;$(IncludePath)</IncludePath>
+    <OutDir>../../../build/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;NATUI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(ProjectDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <ImportLibrary>../../../libs/$(TargetName).lib</ImportLibrary>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;NATUI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ImportLibrary>../../../libs/$(TargetName).lib</ImportLibrary>
+      <ProgramDatabaseFile>$(ProjectDir)$(TargetName).pdb</ProgramDatabaseFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\source\common\string.h" />
+    <ClInclude Include="..\..\..\source\natUI\base.h" />
+    <ClInclude Include="..\..\..\source\natUI\base_component.h" />
+    <ClInclude Include="..\..\..\source\natUI\base_control.h" />
+    <ClInclude Include="..\..\..\source\natUI\base_handle.h" />
+    <ClInclude Include="..\..\..\source\natUI\base_textual.h" />
+    <ClInclude Include="..\..\..\source\natUI\button.h" />
+    <ClInclude Include="..\..\..\source\natUI\checkbox.h" />
+    <ClInclude Include="..\..\..\source\natUI\combobox.h" />
+    <ClInclude Include="..\..\..\source\natUI\edit.h" />
+    <ClInclude Include="..\..\..\source\natUI\groupbox.h" />
+    <ClInclude Include="..\..\..\source\natUI\hint.h" />
+    <ClInclude Include="..\..\..\source\natUI\listbox.h" />
+    <ClInclude Include="..\..\..\source\natUI\listview.h" />
+    <ClInclude Include="..\..\..\source\natUI\manager.h" />
+    <ClInclude Include="..\..\..\source\natUI\memo.h" />
+    <ClInclude Include="..\..\..\source\natUI\menu.h" />
+    <ClInclude Include="..\..\..\source\natUI\natUI.h" />
+    <ClInclude Include="..\..\..\source\natUI\natUI_wrap.h" />
+    <ClInclude Include="..\..\..\source\natUI\progressbar.h" />
+    <ClInclude Include="..\..\..\source\natUI\radiobutton.h" />
+    <ClInclude Include="..\..\..\source\natUI\static.h" />
+    <ClInclude Include="..\..\..\source\natUI\statusbar.h" />
+    <ClInclude Include="..\..\..\source\natUI\toolbar.h" />
+    <ClInclude Include="..\..\..\source\natUI\trackbar.h" />
+    <ClInclude Include="..\..\..\source\natUI\updown.h" />
+    <ClInclude Include="..\..\..\source\natUI\vk.h" />
+    <ClInclude Include="..\..\..\source\natUI\window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\source\common\string.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\base.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\base_component.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\base_control.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\base_handle.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\base_textual.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\button.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\checkbox.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\combobox.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\edit.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\groupbox.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\hint.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\listbox.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\listview.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\manager.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\memo.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\menu.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\natUI.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\natUI_dll.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\progressbar.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\radiobutton.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\static.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\statusbar.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\toolbar.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\trackbar.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\updown.cpp" />
+    <ClCompile Include="..\..\..\source\natUI\window.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
