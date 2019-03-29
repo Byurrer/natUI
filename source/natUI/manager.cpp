@@ -137,3 +137,60 @@ IMenuPopup* CManager::newMenuContext(UINT uIdRes, int iIndex)
 {
 	return new CMenuPopup(uIdRes, iIndex);
 }
+
+//##########################################################################
+
+void dialogSelectFile(DIALOG_TYPE type, char *szPath, char *szName, const char *szStdPath, const char *szFilter)
+{
+	OPENFILENAME oOFN;
+
+	char szPathLocal[1024];
+	char szNameLocal[256];
+
+	if (!szPath && !szName)
+		return;
+
+	if (szPath)
+		szPathLocal[0] = szPathLocal[1] = 0;
+
+	if (szName)
+		szNameLocal[0] = szNameLocal[1] = 0;
+
+	ZeroMemory(&oOFN, sizeof(OPENFILENAME));
+	oOFN.lStructSize = sizeof(OPENFILENAME);
+	oOFN.hInstance = GetModuleHandle(0);
+	oOFN.hwndOwner = 0;
+	oOFN.lpstrFilter = szFilter;
+	oOFN.lpstrFile = szPathLocal;
+	oOFN.nMaxFile = sizeof(szPathLocal);
+	oOFN.lpstrInitialDir = szStdPath;
+
+	if (szName)
+	{
+		oOFN.lpstrFileTitle = szNameLocal;
+		oOFN.nMaxFileTitle = sizeof(szNameLocal);
+	}
+
+	oOFN.Flags = 0;
+	oOFN.Flags |= OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+
+	char szStdPathOld[256];
+	GetCurrentDirectory(256, szStdPathOld);
+
+	BOOL iResult = FALSE;
+	if (type == DIALOG_TYPE_OPEN)
+		iResult = GetOpenFileName(&oOFN);
+	else if (type == DIALOG_TYPE_SAVE)
+		iResult = GetSaveFileName(&oOFN);
+
+	SetCurrentDirectory(szStdPathOld);
+
+	if (iResult)
+	{
+		if (szPath)
+			strcpy(szPath, szPathLocal);
+
+		if (szName)
+			strcpy(szName, szNameLocal);
+	}
+}

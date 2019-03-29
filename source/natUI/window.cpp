@@ -166,7 +166,7 @@ void CWindow::addHandlerSize(HandlerExWindow fnHandler)
 	addHandlerEx(CODE_MESSAGE_EX_WINDOW_SIZE, fnHandler);
 }
 
-void CWindow::addHandlerCMenu(HandlerExWindow fnHandler)
+void CWindow::addHandlerCallCMenu(HandlerExWindow fnHandler)
 {
 	addHandlerEx(CODE_MESSAGE_EX_WINDOW_CALLCMENU, fnHandler);
 }

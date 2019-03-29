@@ -369,10 +369,16 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 	else if (uMsg == WM_CLOSE)
 	{
 		HCR codeRet = procEx(CODE_MESSAGE_EX_WINDOW_CLOSE, &CHandlerDataWindow());
-		//return procCodeReturn(codeRet, pRet);
-
+		
 		if (pRet)
 			*pRet = 0;
+
+		if (codeRet == HANDLER_CODE_RETURN_DEFAULT)
+		{
+			IWindow *pWindow = dynamic_cast<IWindow*>(this);
+			mem_release(pWindow);
+			PostQuitMessage(0);
+		}
 
 		return true;
 	}

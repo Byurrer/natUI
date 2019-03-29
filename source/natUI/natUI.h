@@ -9,9 +9,9 @@ See the license in LICENSE
 Заголовочный файл библиотеки графического пользовательского интерфейса посредством WinApi
 */
 
-/*! \defgroup sxguiwinapi sxguiwinapi - библиотека графического пользовательского интерфейса реализованного на WinApi
- \note Для начала нужно инициализировать вызвать функции инициализации #SXGUIinit
-@{*/
+/*! \defgroup natui natUI - библиотека графического пользовательского интерфейса реализованного на WinApi
+ \note Для начала нужно инициализировать вызвать функции инициализации #ManagerInit
+@{*/ 
 
 #ifndef __NATUI_H
 #define __NATUI_H
@@ -19,16 +19,22 @@ See the license in LICENSE
 #include <common/types.h>
 #include <windows.h>
 
-#ifdef _DLL
+#if defined(_NATUI_BUILD_DLL) || defined(_NATUI_BUILD_LIB)
 #define NATUI_API extern "C" __declspec (dllexport)
-#else
+#elif defined(NATUI_USE_DLL)
 #define NATUI_API extern "C" __declspec (dllimport)
+#elif defined(NATUI_USE_LIB)
+#define NATUI_API extern "C"
+#else
+#define NATUI_API
 #endif
 
 //##########################################################################
 
 //! тип нативного дескриптора (для независимости от типов winapi)
 typedef void* NativeHandle;
+
+//**************************************************************************
 
 struct IComponent;
 struct IHint;
@@ -39,7 +45,7 @@ struct IMenuPopup;
 
 //##########################################################################
 
-//!Выравнивание текста в элементе
+//! выравнивание текста в элементе
 enum TEXT_ALIGN
 {
 	//! по левому краю
@@ -52,7 +58,7 @@ enum TEXT_ALIGN
 	TEXT_ALIGN_CENTER,
 };
 
-//! Стороны элемента
+//! стороны элемента
 enum SIDE
 {
 	//! верх
@@ -96,8 +102,6 @@ enum GUI_TYPE_ELEMENT
 	GUI_TYPE_ELEMENT_PROGRESSBAR,
 	GUI_TYPE_ELEMENT_STATUSBAR,
 	GUI_TYPE_ELEMENT_TRACKBAR,
-
-	GUI_TYPE_ELEMENT_MENU,
 };
 
 //#############################################################################
@@ -109,8 +113,7 @@ struct IBaseObject
 };
 
 
-/*! Первый базовый класс, единственным родителем не используется, 
-определяет объект как control, то есть содержит в себе минимум данных для управления объектом
+/*! интерфейс control - базовое управление элементарным функционалом объекта
 */
 struct IControl : public IBaseObject
 {
@@ -150,12 +153,13 @@ struct IControl : public IBaseObject
 	//! установить пользовательские данные, возвращает предыдущее значение
 	virtual void* setUserPtr(void *ptr) = 0;
 
+	//! возвращает тип объекта #GUI_TYPE_ELEMENT
 	virtual GUI_TYPE_ELEMENT getElementType() = 0;
 };
 
 //##########################################################################
 
-//! Коды возвратов из обработчиков, HANDLER_CODE_RETURN
+//! коды возвратов из обработчиков, HANDLER_CODE_RETURN
 enum HANDLER_CODE_RETURN
 {
 	//! ничего не предпринимать, сообщение отправится в стандартный обработчик
@@ -325,7 +329,11 @@ enum CODE_MESSAGE_KEY
 struct CHandleKeyData
 {
 	CHandleKeyData(){ m_key = VKEY_NULL; m_isFirstDown = true; }
+
+	//! код клавиши
 	VKEY m_key;
+
+	//! нажата ли клавиша впервые
 	bool m_isFirstDown;
 };
 
@@ -348,17 +356,41 @@ struct IHandle : public virtual IControl
 
 //#############################################################################
 
-/*! Компонент - второй в очереди родитель, часто наследование идет именно от него,
-более расширенное управление большинством возможностей 
+/*! \name Подгон объекта под стороны объекта (X - по ширине, Y - по высоте)
+@{*/
+
+//! к левому краю
+#define ADJUSTPOS_X_LEFT	-1
+
+//! по центру (по ширине)
+#define ADJUSTPOS_X_CENTER	0
+
+//! к правому краю
+#define ADJUSTPOS_X_RIGHT	1
+
+
+//! к верху
+#define ADJUSTPOS_Y_TOP		-1
+
+//! к центру (по высоте)
+#define ADJUSTPOS_Y_CENTER	0
+
+//! к низу
+#define ADJUSTPOS_Y_BOTTOM	1
+
+//!@}
+
+/*! интерфейс component - расширенное управление (позиция, графика, габариты и прочее)
 */
 struct IComponent : public virtual IHandle
 {
 	virtual ~IComponent(){};
 
 	/*! устанавливает необходимые данные для управления элементом
-	 \note Необходимо вызывать после инициализации, то есть когда HWND уже получен
+	 \note Необходимо вызывать после инициализации, то есть когда HWND уже получен, после initControl
+	 \todo Скрыть этот метод в реализации
 	*/
-	virtual void initComponent() = 0;
+	//virtual void initComponent() = 0;
 
 	//! действителен ли элемент
 	virtual bool getEnable() = 0;
@@ -367,27 +399,45 @@ struct IComponent : public virtual IHandle
 	virtual void setEnable(bool isEnable) = 0;
 
 
-	//! устанавливает область окна RECT элемента в глобальных координатах
-	virtual bool setWinRect(
-		const RECT *pRect,	//!< устанавливаемый RECT
-		bool isBoundScreen	//!< использовать ли только рабочую область (рабочий стол кроме панели задач)
-		) = 0;
+	/*! устанавливает область окна RECT элемента в глобальных координатах
+	 \param pRect устанавливаемый RECT
+	 \param isBoundScreen использовать ли только рабочую область (рабочий стол кроме панели задач)
+	*/
+	virtual bool setWinRect(const RECT *pRect, bool isBoundScreen) = 0;
 
 	//! возвращает область окна RECT элемента в глобальных координатах
 	virtual void getWinRect(RECT *pRect) = 0;
 
-	//! устанавливает клиентскую область RECT элемента в глобальных координатах
-	virtual bool setClientRect(
-		const RECT *pRect,	//!< устанавливаемый RECT
-		bool isBoundScreen	//!< использовать ли только рабочую область (рабочий стол кроме панели задач)
-		) = 0;	
+	/*! устанавливает клиентскую область RECT элемента в глобальных координатах
+	 \param pRect устанавливаемый RECT
+	 \param isBoundScreen использовать ли только рабочую область (рабочий стол кроме панели задач)
+	*/
+	virtual bool setClientRect(const RECT *pRect, bool isBoundScreen) = 0;	
 
 	//! возвращает клиентскую область RECT элемента в глобальных координатах
 	virtual void getClientRect(RECT *pRect) = 0;
 
+	//! в pPoint запишет позицию левого верхнего угла
+	virtual void getPos(POINT *pPoint) = 0;
 
-	/*! \name Всплывающая подсказка
-	 \note Первая установка видимости ShowHint(true) либо первая устновка текста #SetHintText инициализируют объект подсказки, до первого вызова функции #GetHintText записывают/возвращают 0
+	//! в pSize запишет размеры (x - ширина, y - высота)
+	virtual void getSize(POINT *pSize) = 0;
+
+	//! устанавливает позицию левого верхнего угла
+	virtual void setPos(const POINT *pPoint) = 0;
+
+	//! устанавливает размеры (x - ширина, y - высота)
+	virtual void setSize(const POINT *pSize) = 0;
+
+	/*! установка позиции элемента относительно сторон своего родителя
+	 \param iAdjustX - подгон по ширине (ADJUSTPOS_X_)
+	 \param iAdjustY - подгон по высоте (ADJUSTPOS_Y_)
+	*/
+	virtual void adjustPos(int iAdjustX, int iAdjustY) = 0;
+
+
+	/*! \name всплывающая подсказка
+	 \note первая установка видимости ShowHint(true) либо первая устновка текста #SetHintText инициализируют объект подсказки, до первого вызова функции #GetHintText записывают/возвращают 0
 	@{*/
 
 	//! установка состояния видимости подсказки
@@ -424,10 +474,14 @@ struct IComponent : public virtual IHandle
 	/*! \name Обновление позиций относительно родителя
 	@{*/
 
-	//! обновление координат и размеров элемента относительно его родителя, обычно вызывается установленными обработчиками
+	/*! обновление координат и размеров элемента относительно его родителя
+	 \note обычно вызывается установленными обработчиками, причем внутренними, напрямую пользователем не вызывается
+	*/
 	virtual void updateSize() = 0;
 
-	//! обновление внутрненних данных для #UpdateSize
+	/*! обновление внутрненних данных для #updateSize
+	 \note напрямую пользователем не вызывается
+	*/
 	virtual void updateRect() = 0;
 
 
@@ -499,7 +553,7 @@ struct IComponent : public virtual IHandle
 #define TEXTUAL_BOLD_HEAVY	900
 
 
-/*! Элемент содержащий текст, название */
+/*! элемент содержащий текст, название, и его управление */
 struct ITextual : public virtual IComponent
 {
 	virtual ~ITextual(){};
@@ -545,7 +599,7 @@ struct ITextual : public virtual IComponent
 
 
 	//! установка цвета заднего фона текста
-	virtual void setColorTextBk(UINT dwColor) = 0;
+	virtual void setColorTextBk(UINT uColor) = 0;
 
 	//! возвращает текущее значение цвета заднего фона текста
 	virtual UINT getColorTextBk() = 0;
@@ -568,7 +622,7 @@ struct IHint : public IBaseObject
 	virtual void setDelayTime(UINT uInit, UINT uAutopop) = 0;
 
 	//! устанавливает родителя (при наведении на родителя всплывает эта подсказка)
-	virtual bool setParent(IControl *PParent) = 0;
+	virtual bool setParent(IControl *pParent) = 0;
 
 	//! возвращает родителя
 	virtual IControl* getParent() = 0;
@@ -593,6 +647,8 @@ struct IHint : public IBaseObject
 	virtual void getText(char *szBuf) = 0;			
 };
 
+//#############################################################################
+//#############################################################################
 //#############################################################################
 
 //! внешний вид окна
@@ -622,9 +678,7 @@ enum WND_STYLE
 	WND_STYLE_COUNT
 };
 
-/*! элемент "Window" - окно. 
-По дефолту обработчиком назначается DefWindowProc, 
-чтобы функционировали свойства ISXGUIComponent необходимо указать стандартный для всех элементов обработчик WndProcAllDefault
+/*! элемент "Window" - окно
 */
 struct IWindow : public virtual ITextual
 {
@@ -654,20 +708,25 @@ struct IWindow : public virtual ITextual
 	//! возвращает установленный стиль окна #WND_STYLE
 	virtual WND_STYLE getStyle() = 0;
 
+	//! установить главное меню
 	virtual bool setMenu(IMenuWindow *pMenu) = 0;
 
+	//! установить текущее контекстное меню
 	virtual bool setCurrCMenu(IMenuPopup *pCMenu) = 0;
 
+	//! получить текущее контекстное меню
 	virtual IMenuPopup* getCurrCMenu() = 0;
 
+	//! добавить обработчик изменения размеров окна
 	virtual void addHandlerSize(HandlerExWindow fnHandler) = 0;
 
-	virtual void addHandlerCMenu(HandlerExWindow fnHandler) = 0;
+	//! обработчик взова контекстного меню (клик ПКМ в рабочей области окна)
+	virtual void addHandlerCallCMenu(HandlerExWindow fnHandler) = 0;
 };
 
 //#############################################################################
 
-//! элемент "Static" простое текстовое поле без возможности пользовательского редактирования, также можно создать при помощи него линию горизонтальную/вертикальную
+//! элемент "Static" простое текстовое поле без возможности пользовательского редактирования, также можно создать линию (горизонтальную/вертикальную)
 struct IStatic : public virtual ITextual
 {
 	virtual ~IStatic(){}
@@ -691,13 +750,13 @@ struct IStatic : public virtual ITextual
 //! Типы загружаемого фона элемента #ISXGUIButton
 enum BUTTON_IMAGE
 {
-	/*!< не использовать загружаемый фон */
+	//! не использовать загружаемый фон
 	BUTTON_IMAGE_NONE = 0,
 
-	/*!< загружать иконку (.ico) */
+	//! загружать иконку (.ico)
 	BUTTON_IMAGE_ICON = 1,
 
-	/*!< загружать изображение (.bmp) */
+	//! загружать изображение (.bmp)
 	BUTTON_IMAGE_BITMAT = 2,
 };
 
@@ -815,7 +874,7 @@ struct IComboBox : public virtual ITextual
 	//! установка для строки userdata
 	virtual bool setItemData(ID idItem, LONG lData) = 0;
 
-	//! получение userdata
+	//! получение userdata строки
 	virtual LONG getItemData(ID idItem) = 0;
 
 
@@ -862,18 +921,18 @@ struct IListBox : public virtual ITextual
 	virtual int getItemCount() = 0;
 
 
-	//! удалить строку с номером index
+	//! удалить строку с номером idString
 	virtual bool deleteItem(ID idString) = 0;
 
 
-	//! выделить строку с номером index
+	//! выделить строку с номером idString
 	virtual bool setSel(ID idString) = 0;
 	
 	//! возвращает индекс выделенной строки
 	virtual int	getSel() = 0;
 
 
-	//! установить userdata для строки с номером index
+	//! установить userdata для строки с номером idString
 	virtual bool setItemData(ID idString, LONG lData) = 0;
 
 	//! возвращает userdata
@@ -884,10 +943,10 @@ struct IListBox : public virtual ITextual
 	virtual bool clear() = 0;								
 
 
-	//! установить текст в строке с номером index
+	//! установить текст в строке с номером idString
 	virtual bool setItemText(ID idString, const char *szText) = 0;
 
-	//! возвращает текст из строки
+	//! возвращает текст из строки idString
 	virtual void getItemText(ID idString, char *szBuf) = 0;
 
 
@@ -895,7 +954,7 @@ struct IListBox : public virtual ITextual
 	virtual int getItemTextLength(ID idString) = 0;
 
 
-	//! возвращает количество выделенных строк, если #GetMultipleSel() == true
+	//! возвращает количество выделенных строк, если #getMultipleSel() == true
 	virtual int	getMultiSelCount() = 0;					
 
 	//! устанавливает выделена/не выделена строка
@@ -1142,20 +1201,20 @@ struct IStatusBar : public virtual ITextual
 {
 	virtual ~IStatusBar(){}
 
-	//! установка количества частей и их размеров
-	virtual bool setPartsCount(
-		int iCount,	//!< количество частей, размер pArr
-		int *pArr	//!< массив с размерами в пикселях по ширине каждой части
-		) = 0;
+	/*! установка количества частей и их размеров
+	 \param iCount количество частей, размер pArr
+	 \param pArr массив с размерами в пикселях по ширине каждой части
+	*/
+	virtual bool setPartsCount(int iCount, int *pArr) = 0;
 
-	//! инициализирует arr (если arr != 0) и записывает в него позиции (правая сторона клиентской области) каждой части, возвращает количество частей 
+	//! инициализирует ppArr (если ppArr != 0) и записывает в него позиции (правая сторона клиентской области) каждой части, возвращает количество частей 
 	virtual int getPartsCount(int **ppArr) = 0;
 	
-	//! устанавливает в часть текст
-	virtual bool setPartText(
-		int iPos,			//!< номер части
-		const char *szText	//!< текст
-		) = 0;
+	/*! устанавливает в часть текст
+	 \param iPos номер части
+	 \param szText текст
+	*/
+	virtual bool setPartText(int iPos,const char *szText) = 0;
 
 	//! в szBuf записывает текст части iPos, iLenBuf - размер szBuf
 	virtual bool getPartText(int iPos, char *szBuf, int iLenBuf) = 0;
@@ -1167,16 +1226,19 @@ struct IStatusBar : public virtual ITextual
 	virtual void updateSize() = 0;	
 
 
-	//! устанавливает выравнивание при изменении размеров STATUSBAR_ALIGNRS_
-	virtual void setAlignReSize(STATUSBAR_ALIGN_RESIZE align_resize) = 0;
+	//! устанавливает выравнивание при изменении размеров #STATUSBAR_ALIGN_RESIZE
+	virtual void setAlignReSize(STATUSBAR_ALIGN_RESIZE alignResize) = 0;
 
-	//! возвращает выравнивание при изменении размеров STATUSBAR_ALIGNRS_
+	//! возвращает выравнивание при изменении размеров #STATUSBAR_ALIGN_RESIZE
 	virtual STATUSBAR_ALIGN_RESIZE getAlignReSize() = 0;
 };
 
 //#############################################################################
 
-//! элемент "ToolBar" - панель инструментов
+/*! элемент "ToolBar" - панель инструментов
+ \warning Добавлен для полноты объектов, будет дорабьатываться, текущий функционал не прошел достаточное тестирование
+ \todo Доделать #IToolBar
+*/
 struct IToolBar : public virtual IComponent
 {
 	virtual ~IToolBar(){}
@@ -1187,14 +1249,10 @@ struct IToolBar : public virtual IComponent
 //! структура данных передаваемая в обработчик сообщений от меню
 struct CHandlerMenuData
 {
-	CHandlerMenuData(){ m_idSelected = -1; m_iX = m_iY = 0; }
+	CHandlerMenuData(){ m_idSelected = -1;}
 	
 	//! id выбранного элемента
 	ID m_idSelected;
-
-	//! 
-	int m_iX;
-	int m_iY;
 };
 
 //! тип функции обработчика сообщения меню
@@ -1218,34 +1276,34 @@ struct IMenuBase : public IBaseObject
 {
 	virtual ~IMenuBase(){}
 
-	//! вставить элемент меню
-	virtual bool insertItem(
-		int iIndex,			//!< индекс позиции
-		const char *szText,	//!< текст элемента
-		ID idUnit,			//!< идентификатор элемента меню
-		ID idSubUnit=-1		//!< идентификатор подменю
-		) = 0;
+	/*! вставить элемент меню
+	 \param iIndex индекс позиции
+	 \param szText текст элемента
+	 \param idUnit идентификатор элемента меню
+	 \param idSubUnit идентификатор подменю
+	*/
+	virtual bool insertItem(int iIndex, const char *szText, ID idUnit, ID idSubUnit=-1) = 0;
 
-	//! вставить элемент от которого пойдет контекстное меню
-	virtual bool insertPopupItem(
-		int iIndex,			//!< индекс позиции
-		const char *szText,	//!< текст элемента
-		ID idUnit,			//!< идентификатор элемента меню
-		ID idSubUnit=-1		//!< идентификатор подменю
-		) = 0;
+	/*! вставить элемент от которого пойдет контекстное меню
+	 \param iIndex индекс позиции
+	 \param szText текст элемента
+	 \param idUnit идентификатор элемента меню
+	 \param idSubUnit идентификатор подменю
+	*/
+	virtual bool insertPopupItem(int iIndex, const char *szText, ID idUnit, ID idSubUnit=-1) = 0;
 
-	//! вставить разделитель
-	virtual bool insertSeparator(
-		int iIndex,			//!< индекс позиции
-		ID idUnit,			//!< идентификатор элемента меню
-		ID idSubUnit=-1		//!< идентификатор подменю
-		) = 0;
+	/*! вставить разделитель
+	 \param iIndex индекс позиции
+	 \param idUnit идентификатор элемента меню
+	 \param idSubUnit идентификатор подменю
+	*/
+	virtual bool insertSeparator(int iIndex, ID idUnit, ID idSubUnit=-1) = 0;
 
 	//! удалить элемент меню по его id
 	virtual bool deleteItem(ID idUnit) = 0;
 
-	//! возвращает дескриптор подменю по его id
-	virtual HMENU getSubMenu(ID idUnit) = 0;
+	//! возвращает нативный дескриптор подменю (HMENU) по его id
+	virtual NativeHandle getSubMenu(ID idUnit) = 0;
 
 
 	//! выделить элемент меню
@@ -1285,12 +1343,12 @@ struct IMenuPopup : public virtual IMenuBase
 {
 	virtual ~IMenuPopup(){}
 
-	//! показать меню
-	virtual bool track(
-		IWindow *pWindow,	//!< дескриптор элемента для которого вызывается меню
-		int iX,	//!< позиция по оси x (screen space)
-		int iY	//!< позиция по оси y (screen space)
-		) = 0;
+	/*! показать меню
+	 \param pWindow окно которое обрабатывает сообщения от этого меню
+	 \param iX позиция по оси x (screen space)
+	 \param iY	позиция по оси y (screen space)
+	*/
+	virtual bool track(IWindow *pWindow,int iX,	int iY) = 0;
 
 	virtual void setTargetComponent(IComponent *pComponent) = 0;
 	virtual IComponent* getTargetComponent() = 0;
@@ -1298,32 +1356,23 @@ struct IMenuPopup : public virtual IMenuBase
 
 //!@} sxguiwinapi_elements
 
-//#############################################################################
-
-/*! \name Типы диалогов выбора файлов
-@{*/
-
-#define DIALOG_FILE_OPEN 0	/*!< открыватие файла */
-#define DIALOG_FILE_SAVE 1	/*!< сохранение файла */
-
-//!@}
-
-
-/*! диалог выбора файла
- \note path или name должен быть не 0, иначе результат вызова диалога некуда будет записать и как следствие диалог не будет вызван
-*/
-NATUI_API void SelectFileStd(
-	int type,				//!< тип диалога DIALOG_FILE_
-	char* path,				//!< если не 0 то запишется путь до файла
-	char* name,				//!< если не 0 то запишется имя файла
-	const char* stdpath,	//!< путь относительно которого открывать диалог
-	const char* filter		//!< фильтр расширений
-	);
-
-//};
-
+//##########################################################################
+//##########################################################################
 //##########################################################################
 
+//! типы диалогов выбора файлов
+enum DIALOG_TYPE
+{
+	//! открыватие файла
+	DIALOG_TYPE_OPEN = 0,
+
+	//! сохранение файла 
+	DIALOG_TYPE_SAVE = 1,
+};
+
+//**************************************************************************
+
+//! менеджер управляющий созданием элементов
 struct IManager
 {
 	/*! создает экземплляр объекта "Window", и возвращает указатель
@@ -1402,12 +1451,26 @@ struct IManager
 	 \param iIndex - индекс вложенного меню
 	*/
 	virtual IMenuPopup* newMenuContext(UINT uIdRes=-1, int iIndex = 0) = 0;
+
+	//######################################################################
+
+	/*! диалог выбора файла
+	\note path или name должен быть не 0, иначе результат вызова диалога некуда будет записать и как следствие диалог не будет вызван
+	\patam type тип диалога #DIALOG_TYPE
+	\patam szPath если не 0 то запишется путь до файла
+	\patam szName если не 0 то запишется имя файла
+	\patam szStdPath путь относительно которого открывать диалог
+	\patam szFilter фильтр расширений
+	*/
+	void dialogSelectFile(DIALOG_TYPE type, char *szPath, char *szName, const char *szStdPath, const char *szFilter = 0);
 };
 
-
+//! инициализация менеджера
 NATUI_API IManager* ManagerInit();
+
+//! уничтожает менеджер
 NATUI_API void ManagerDestroy();
 
 #endif
 
-//!@} sxguiwinapi
+//!@} natui

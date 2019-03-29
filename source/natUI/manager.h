@@ -59,6 +59,10 @@ public:
 	IMenuWindow* newMenuWindow(UINT uIdRes = -1) ;
 
 	IMenuPopup* newMenuContext(UINT uIdRes = -1, int iIndex = 0);
+
+	//######################################################################
+
+	void dialogSelectFile(DIALOG_TYPE type, char *szPath, char *szName, const char *szStdPath, const char *szFilter = 0);
 };
 
 

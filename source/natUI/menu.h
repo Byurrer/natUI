@@ -26,7 +26,7 @@ public:
 
 	bool deleteItem(ID id);
 
-	HMENU getSubMenu(ID id);
+	NativeHandle getSubMenu(ID id);
 
 	bool setCheckItem(ID id, bool isChecked);
 	bool setEnableItem(ID id, bool isEnabled);

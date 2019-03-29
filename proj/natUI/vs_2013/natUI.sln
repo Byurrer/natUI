@@ -5,22 +5,22 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "natUI", "natUI.vcxproj", "{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_gui", "..\..\test_gui\vs2013\test_gui.vcxproj", "{D18730A6-8E41-4D6D-892D-FBFC9074EEB9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Release|Win32 = Release|Win32
+		Debug DLL|Win32 = Debug DLL|Win32
+		Debug Lib|Win32 = Debug Lib|Win32
+		Release DLL|Win32 = Release DLL|Win32
+		Release Lib|Win32 = Release Lib|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Debug|Win32.ActiveCfg = Debug|Win32
-		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Debug|Win32.Build.0 = Debug|Win32
-		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Release|Win32.ActiveCfg = Release|Win32
-		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Release|Win32.Build.0 = Release|Win32
-		{D18730A6-8E41-4D6D-892D-FBFC9074EEB9}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D18730A6-8E41-4D6D-892D-FBFC9074EEB9}.Debug|Win32.Build.0 = Debug|Win32
-		{D18730A6-8E41-4D6D-892D-FBFC9074EEB9}.Release|Win32.ActiveCfg = Release|Win32
-		{D18730A6-8E41-4D6D-892D-FBFC9074EEB9}.Release|Win32.Build.0 = Release|Win32
+		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Debug DLL|Win32.ActiveCfg = Debug DLL|Win32
+		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Debug DLL|Win32.Build.0 = Debug DLL|Win32
+		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Debug Lib|Win32.ActiveCfg = Debug Lib|Win32
+		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Debug Lib|Win32.Build.0 = Debug Lib|Win32
+		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Release DLL|Win32.ActiveCfg = Release DLL|Win32
+		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Release DLL|Win32.Build.0 = Release DLL|Win32
+		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Release Lib|Win32.ActiveCfg = Release Lib|Win32
+		{AB6570F6-12EC-4386-B211-B1F3E6EEDDD9}.Release Lib|Win32.Build.0 = Release Lib|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

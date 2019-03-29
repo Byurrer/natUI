@@ -13,10 +13,10 @@ CComponent::CComponent()
 	m_rcParentScreen.top = m_rcParentScreen.bottom = m_rcParentScreen.left = m_rcParentScreen.right = 0;
 	//m_isTransparentTextBk = true;
 
-	m_aStrethSide[SIDE_TOP] = true;
-	m_aStrethSide[SIDE_BOTTOM] = true;
-	m_aStrethSide[SIDE_RIGHT] = true;
-	m_aStrethSide[SIDE_LEFT] = true;
+	m_aStretchSide[SIDE_TOP] = true;
+	m_aStretchSide[SIDE_BOTTOM] = true;
+	m_aStretchSide[SIDE_RIGHT] = true;
+	m_aStretchSide[SIDE_LEFT] = true;
 
 	m_iMinSizeWidth = m_iMinSizeHeight = 0;
 	//Font = 0;
@@ -72,78 +72,157 @@ void CComponent::setEnable(bool bf)
 	EnableWindow(m_hWindow, (bf ? 1 : 0));
 }
 
-bool CComponent::setWinRect(const RECT* rect, bool alignment_screen_space)
+bool CComponent::setWinRect(const RECT *pRect, bool isBoundScreen)
 {
-	RECT wrect;
-	SystemParametersInfo(SPI_GETWORKAREA, 0, &wrect, 0);
-	UINT width_screen = wrect.right;
-	UINT heigth_screen = wrect.bottom;
+	RECT oRectScreen;
+	SystemParametersInfo(SPI_GETWORKAREA, 0, &oRectScreen, 0);
+	int iWidthScreen = oRectScreen.right;
+	int iHeigthScreen = oRectScreen.bottom;
 
-	//MessageBox(0,ToPointChar(ToString(width_screen) + "|" + ToString(heigth_screen)),0,0);
+	int iX = pRect->left;
+	int iY = pRect->top;
+	int iWidth = pRect->right - pRect->left;
+	int iHeigth = pRect->bottom - pRect->top;
 
-	WORD x = rect->left;
-	WORD y = rect->top;
-	WORD width = rect->right - rect->left;
-	WORD heigth = rect->bottom - rect->top;
-	//MessageBox(0,ToPointChar(ToString(width) + "|" + ToString(heigth)),"wh",0);
-	if (alignment_screen_space)
+	if (isBoundScreen)
 	{
-		x = x < width_screen ? x : width_screen;
-		y = y < heigth_screen ? y : heigth_screen;
-		//MessageBox(0,ToPointChar(ToString(rect->right) + "|" + ToString(rect->bottom)),"wh",0);
-		width = rect->right <= width_screen ? width : width_screen - x;
-		heigth = rect->bottom <= heigth_screen ? heigth : heigth_screen - y;
+		iX = (iX < iWidthScreen ? iX : iWidthScreen);
+		iY = (iX < iHeigthScreen ? iY : iHeigthScreen);
 
-		/*if(x < 0)
-		x = 0;
-		if(y < 0)
-		y = 0;*/
+		iWidth = (pRect->right <= iWidthScreen ? iWidth : iWidthScreen - iX);
+		iHeigth = (pRect->bottom <= iHeigthScreen ? iHeigth : iHeigthScreen - iY);
 	}
-	//MessageBox(0,ToPointChar(ToString(width) + "|" + ToString(heigth)),"wh",0);
-	BOOL bf = MoveWindow(m_hWindow, x, y, width, heigth, true);
-	return bf == TRUE ? true : false;
+
+	return ((bool)MoveWindow(m_hWindow, iX, iY, iWidth, iHeigth, TRUE));
 }
 
-void CComponent::getWinRect(RECT* rect)
+void CComponent::getWinRect(RECT *pRect)
 {
-	GetWindowRect(m_hWindow, rect);
+	GetWindowRect(m_hWindow, pRect);
 }
 
-bool CComponent::setClientRect(const RECT* rect, bool alignment_screen_space)
+bool CComponent::setClientRect(const RECT *pRect, bool isBoundScreen)
 {
-	RECT wrect;
-	SystemParametersInfo(SPI_GETWORKAREA, 0, &wrect, 0);
-	long width_screen = wrect.right;
-	long heigth_screen = wrect.bottom;
+	RECT oRectScreen;
+	SystemParametersInfo(SPI_GETWORKAREA, 0, &oRectScreen, 0);
+	int iWidthScreen = oRectScreen.right;
+	int iHeigthScreen = oRectScreen.bottom;
 
-	//MessageBox(0,ToPointChar(ToString(width_screen) + "|" + ToString(heigth_screen)),0,0);
+	RECT pRect2 = *pRect;
 
-	long x = rect->left;
-	long y = rect->top;
-	long width = rect->right - rect->left;
-	long heigth = rect->bottom - rect->top;
-	//MessageBox(0,ToPointChar(ToString(width) + "|" + ToString(heigth)),"wh",0);
-	if (alignment_screen_space)
+	//используется ли меню
+	bool useMenu = false;
+	if (m_typeElement == GUI_TYPE_ELEMENT_WINDOW && GetMenu(m_hParent))
+		useMenu = true;
+
+	//выравнивание rect по размерам в соответсвии со стилем
+	AdjustWindowRect(&pRect2, (DWORD)GetWindowLong(m_hParent, GWL_STYLE), useMenu);
+
+	int iX = pRect2.left;
+	int iY = pRect2.top;
+	int iWidth = pRect2.right - pRect2.left;
+	int iHeigth = pRect2.bottom - pRect2.top;
+	
+	if (isBoundScreen && m_typeElement == GUI_TYPE_ELEMENT_WINDOW)
 	{
-		x = x < width_screen ? x : width_screen;
-		y = y < heigth_screen ? y : heigth_screen;
-		//MessageBox(0,ToPointChar(ToString(rect->right) + "|" + ToString(rect->bottom)),"wh",0);
-		width = rect->right <= width_screen ? width : width_screen - x;
-		heigth = rect->bottom <= heigth_screen ? heigth : heigth_screen - y;
+		iX = (iX < iWidthScreen ? iX : iWidthScreen);
+		iY = (iX < iHeigthScreen ? iY : iHeigthScreen);
+
+		iWidth = (pRect2.right <= iWidthScreen ? iWidth : iWidthScreen - iX);
+		iHeigth = (pRect2.bottom <= iHeigthScreen ? iHeigth : iHeigthScreen - iY);
 	}
-	//MessageBox(0,ToPointChar(ToString(width) + "|" + ToString(heigth)),"wh",0);
-	BOOL bf = MoveWindow(m_hWindow, x, y, width, heigth, TRUE);
-	/*RECT* qwerr = GetClientRect();
-	if(x != qwerr->left || y != qwerr->top || width != qwerr->right - qwerr->left || heigth != qwerr->bottom - qwerr->top)
-	MessageBox(0,0,0,0);*/
-	return bf == TRUE ? true : false;
+	
+	return ((bool)MoveWindow(m_hWindow, iX, iY, iWidth, iHeigth, TRUE));
 }
 
-void CComponent::getClientRect(RECT* rect)
+void CComponent::getClientRect(RECT *pRect)
 {
-	GetWindowRect(m_hWindow, rect);
-	MapWindowPoints(NULL, getParentHWND(), (LPPOINT)rect, 2);
+	GetClientRect(m_hWindow, pRect);
+	MapWindowPoints(m_hWindow, 0, (LPPOINT)pRect, 1);
 }
+
+
+void CComponent::getPos(POINT *pPoint)
+{
+	RECT oRect;
+	getWinRect(&oRect);
+	pPoint->x = oRect.left;
+	pPoint->y = oRect.top;
+}
+
+void CComponent::getSize(POINT *pSize)
+{
+	RECT oRect;
+	getWinRect(&oRect);
+	pSize->x = oRect.right - oRect.left;
+	pSize->y = oRect.bottom - oRect.top;
+}
+
+void CComponent::setPos(const POINT *pPoint)
+{
+	POINT oSize;
+	getSize(&oSize);
+
+	RECT oNewRect;
+	oNewRect.left = pPoint->x;
+	oNewRect.top = pPoint->y;
+	oNewRect.right = oNewRect.left + oSize.x;
+	oNewRect.bottom = oNewRect.top + oSize.y;
+	setWinRect(&oNewRect, false);
+}
+
+void CComponent::setSize(const POINT *pSize)
+{
+	POINT oPos;
+	getPos(&oPos);
+
+	RECT oNewRect;
+	oNewRect.left = oPos.x;
+	oNewRect.top = oPos.y;
+	oNewRect.right = oNewRect.left + pSize->x;
+	oNewRect.bottom = oNewRect.top + pSize->y;
+	setWinRect(&oNewRect, false);
+}
+
+void CComponent::adjustPos(int iAdjustX, int iAdjustY)
+{
+	RECT oWinRect;
+	getWinRect(&oWinRect);
+
+	int iCurrWidth = oWinRect.right - oWinRect.left;
+	int iCurrHeight = oWinRect.bottom - oWinRect.top;
+
+	RECT oParentRect;
+
+	IComponent *pParent = (IComponent*)GetWindowLong(m_hParent, GWL_USERDATA);
+	if (pParent)
+		pParent->getClientRect(&oParentRect);
+	else
+		SystemParametersInfo(SPI_GETWORKAREA, 0, &oParentRect, 0);
+
+	int iParentWidth = oParentRect.right - oParentRect.left;
+	int iParentHeight = oParentRect.bottom - oParentRect.top;
+
+	int iX, iY;
+	iX = iY = 0;
+
+	if (iAdjustX == ADJUSTPOS_X_LEFT)
+		iX = 0;
+	else if (iAdjustX == ADJUSTPOS_X_CENTER)
+		iX = (iParentWidth / 2) - (iCurrWidth / 2);
+	else if (iAdjustX == ADJUSTPOS_X_RIGHT)
+		iX = iParentWidth - iCurrWidth;
+
+	if (iAdjustY == ADJUSTPOS_Y_TOP)
+		iY = 0;
+	else if (iAdjustY == ADJUSTPOS_Y_CENTER)
+		iY = (iParentHeight / 2) - (iCurrHeight / 2);
+	else if (iAdjustY == ADJUSTPOS_Y_BOTTOM)
+		iY = iParentHeight - iCurrHeight;
+
+	MoveWindow(m_hWindow, iX, iY, iCurrWidth, iCurrHeight, TRUE);
+}
+
 
 bool CComponent::modifyStyle(long style_add, long style_del)
 {
@@ -379,20 +458,20 @@ UINT CComponent::getMinHeight()
 
 void CComponent::setStretchSides(bool canTop, bool canBottom, bool canRight, bool canLeft)
 {
-	m_aStrethSide[SIDE_TOP] = canTop;
-	m_aStrethSide[SIDE_BOTTOM] = canBottom;
-	m_aStrethSide[SIDE_RIGHT] = canRight;
-	m_aStrethSide[SIDE_LEFT] = canLeft;
+	m_aStretchSide[SIDE_TOP] = canTop;
+	m_aStretchSide[SIDE_BOTTOM] = canBottom;
+	m_aStretchSide[SIDE_RIGHT] = canRight;
+	m_aStretchSide[SIDE_LEFT] = canLeft;
 }
 
 void CComponent::setStretchSide(SIDE side, bool can)
 {
-	m_aStrethSide[side] = can;
+	m_aStretchSide[side] = can;
 }
 
 bool CComponent::getStretchSide(SIDE side)
 {
-	return m_aStrethSide[side];
+	return m_aStretchSide[side];
 }
 
 

@@ -66,7 +66,7 @@ public:
 	IMenuPopup* getCurrCMenu();
 
 	void addHandlerSize(HandlerExWindow fnHandler);
-	void addHandlerCMenu(HandlerExWindow fnHandler);
+	void addHandlerCallCMenu(HandlerExWindow fnHandler);
 
 protected:
 	WND_STYLE m_style;

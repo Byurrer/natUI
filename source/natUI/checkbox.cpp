@@ -33,7 +33,14 @@ CCheckBox::CCheckBox(const char *szCaption, int iX, int iY, int iWidth, int iHei
 
 void CCheckBox::setCheckEx(CHECKBOX_STATE check)
 {
-	SendMessage(m_hWindow, BM_SETCHECK, check, 0);
+	UINT uState = BST_INDETERMINATE;
+
+	if (check == CHECKBOX_STATE_UNCHECKED)
+		uState = BST_UNCHECKED;
+	else if (check == CHECKBOX_STATE_CHECKED)
+		uState = BST_CHECKED;
+
+	SendMessage(m_hWindow, BM_SETCHECK, uState, 0);
 }
 
 void CCheckBox::setCheck(bool isCheck)
@@ -43,5 +50,12 @@ void CCheckBox::setCheck(bool isCheck)
 
 CHECKBOX_STATE CCheckBox::getCheck()
 {
-	return (CHECKBOX_STATE)SendMessage(m_hWindow, BM_GETCHECK, 0, 0);
+	UINT uState = SendMessage(m_hWindow, BM_GETCHECK, 0, 0);
+
+	if (uState == BST_UNCHECKED)
+		return CHECKBOX_STATE_UNCHECKED;
+	else if (uState == BST_CHECKED)
+		return CHECKBOX_STATE_CHECKED;
+
+	return CHECKBOX_STATE_INDETERMINATE;
 }

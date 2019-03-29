@@ -40,7 +40,7 @@ bool CMenuBase::insertItem(int iIndex, const char *szStr, ID idItem, ID idSubMen
 
 	HMENU hSubMenu = 0;
 	if (idSubMenu != -1)
-		hSubMenu = getSubMenu(idSubMenu);
+		hSubMenu = (HMENU)getSubMenu(idSubMenu);
 
 	int iRes = InsertMenuItem((hSubMenu ? hSubMenu : m_hMenu), iIndex, TRUE, &oMII);
 	
@@ -65,7 +65,7 @@ bool CMenuBase::insertPopupItem(int iIndex, const char *szStr, ID idItem, ID idS
 
 	HMENU hSubMenu2 = 0;
 	if (idSubMenu != -1)
-		hSubMenu2 = getSubMenu(idSubMenu);
+		hSubMenu2 = (HMENU)getSubMenu(idSubMenu);
 
 	int iRes = InsertMenuItem((hSubMenu2 ? hSubMenu2 : m_hMenu), iIndex, TRUE, &oMII);
 	
@@ -83,7 +83,7 @@ bool CMenuBase::insertSeparator(int iIndex, ID id, ID idSubMenu)
 
 	HMENU hSubMenu = 0;
 	if (idSubMenu != -1)
-		hSubMenu = getSubMenu(idSubMenu);
+		hSubMenu = (HMENU)getSubMenu(idSubMenu);
 
 	int iRes = InsertMenuItem((hSubMenu ? hSubMenu : m_hMenu), iIndex, TRUE, &oMII);
 	
@@ -95,7 +95,7 @@ bool CMenuBase::deleteItem(ID id)
 	return (bool)(DeleteMenu(m_hMenu,id,MF_BYCOMMAND));
 }
 
-HMENU CMenuBase::getSubMenu(ID id)
+NativeHandle CMenuBase::getSubMenu(ID id)
 {
 	MENUITEMINFO oMI;
 	ZeroMemory(&oMI, sizeof(MENUITEMINFO));
@@ -105,7 +105,7 @@ HMENU CMenuBase::getSubMenu(ID id)
 
 	int iRes = GetMenuItemInfo(m_hMenu, id, FALSE, &oMI);
 
-	return (iRes ? oMI.hSubMenu : 0);
+	return (NativeHandle)(iRes ? oMI.hSubMenu : 0);
 }
 
 bool CMenuBase::setCheckItem(ID id, bool isChecked)

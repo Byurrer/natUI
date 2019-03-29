@@ -94,7 +94,7 @@ void CHint::setDelayTime(UINT uInit, UINT uAutopop)
 void CHint::setText(const char *szText)
 {
 	SendMessage(m_hHint, TTM_DELTOOL, 0, (LPARAM)&m_oHintInfo);
-	sprintf(m_szText, "%s", szText);
+	sprintf_s(m_szText, HINT_COUNT_BUF_SIZE, "%s", szText);
 	m_oHintInfo.lpszText = m_szText;
 	SendMessage(m_hHint, TTM_ADDTOOL, 0, (LPARAM)&m_oHintInfo);
 	//SendMessage(m_hHint, TTM_SETTOOLINFO , 0, (LPARAM) &m_oHintInfo);
@@ -108,7 +108,7 @@ const char* CHint::getText()
 void CHint::getText(char *szBuf)
 {
 	if (szBuf)
-		sprintf(szBuf, "%s", m_szText);
+		sprintf_s(szBuf, HINT_COUNT_BUF_SIZE, "%s", m_szText);
 }
 
 bool CHint::setParent(IControl *pParent)
