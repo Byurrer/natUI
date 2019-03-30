@@ -386,12 +386,6 @@ struct IComponent : public virtual IHandle
 {
 	virtual ~IComponent(){};
 
-	/*! устанавливает необходимые данные для управления элементом
-	 \note Необходимо вызывать после инициализации, то есть когда HWND уже получен, после initControl
-	 \todo Скрыть этот метод в реализации
-	*/
-	//virtual void initComponent() = 0;
-
 	//! действителен ли элемент
 	virtual bool getEnable() = 0;
 
@@ -437,7 +431,7 @@ struct IComponent : public virtual IHandle
 
 
 	/*! \name всплывающая подсказка
-	 \note первая установка видимости ShowHint(true) либо первая устновка текста #SetHintText инициализируют объект подсказки, до первого вызова функции #GetHintText записывают/возвращают 0
+	 \note первая установка видимости #setShowHint(true) либо первая устновка текста #setHintText инициализируют объект подсказки, до того как подсказки инициализированы функция #getHintText записывают/возвращают 0
 	@{*/
 
 	//! установка состояния видимости подсказки
@@ -535,10 +529,10 @@ struct IComponent : public virtual IHandle
 #define TEXTUAL_STYLE_ITALIC	0x00000001
 
 //! подчеркнутый
-#define TEXTUAL_STYLE_UNDERLINE	0x0000001
+#define TEXTUAL_STYLE_UNDERLINE	0x00000008
 
 //! зачеркнутый
-#define TEXTUAL_STYLE_STRIKEOUT	0x000001
+#define TEXTUAL_STYLE_STRIKEOUT	0x00000010
 
 //!@}
 
