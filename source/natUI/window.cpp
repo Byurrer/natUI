@@ -6,7 +6,7 @@ See the license in LICENSE
 
 #include "window.h"
 
-CWindow::CWindow(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent, WND_STYLE style)
+CWindow::CWindow(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent, WND_STYLE style, bool isTopMost)
 {
 	String sClass = g_sWndClassName + g_iWndNum;
 	++g_iWndNum;
@@ -25,13 +25,27 @@ CWindow::CWindow(const char *szCaption, int iX, int iY, int iWidth, int iHeight,
 	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 	wc.lpszClassName = sClass.c_str();
 
+	m_isTopMost = isTopMost;
+
 	if(!RegisterClass(&wc)) 
 	{
 		MessageBox(0, "Ошибка при регистрации класса окна!", sClass.c_str(), 0);
 	}
+
+	if (iWidth < 0 && iHeight < 0)
+	{
+		RECT oRect = { iX, iY, abs(iWidth) + iX, abs(iHeight) + iY };
+		AdjustWindowRect(&oRect, g_aWndStyle[m_style] | WND_STD_STYLE, 0);
+
+		iWidth = oRect.right - oRect.left;
+		iHeight = oRect.bottom - oRect.top;
+	}
+
+	iWidth = abs(iWidth);
+	iHeight = abs(iHeight);
 		
 	m_hWindow = CreateWindowEx(
-		0,
+		(isTopMost ? WS_EX_TOPMOST : 0),
 		sClass.c_str(),
 		szCaption,
 		(pParent != 0 ? WS_CHILD : 0) |g_aWndStyle[m_style] | WND_STD_STYLE,
@@ -80,6 +94,16 @@ WND_STYLE CWindow::getStyle()
 	return m_style;
 }
 
+void CWindow::setTopMost(bool isTopMost)
+{
+	SetWindowPos(m_hWindow, (isTopMost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	m_isTopMost = isTopMost;
+}
+
+bool CWindow::getTopMost()
+{
+	return m_isTopMost;
+}
 
 bool CWindow::setAlphaBlend(bool bf)
 {
@@ -169,4 +193,9 @@ void CWindow::addHandlerSize(HandlerExWindow fnHandler)
 void CWindow::addHandlerCallCMenu(HandlerExWindow fnHandler)
 {
 	addHandlerEx(CODE_MESSAGE_EX_WINDOW_CALLCMENU, fnHandler);
+}
+
+void CWindow::addHandlerExit(HandlerExWindow fnHandler)
+{
+	addHandlerEx(CODE_MESSAGE_EX_WINDOW_CLOSE, fnHandler);
 }

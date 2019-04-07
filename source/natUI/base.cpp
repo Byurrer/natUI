@@ -74,7 +74,7 @@ LRESULT CALLBACK WndProcAllDefault(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 			return lRetSys;
 
 		LONG lRetUser = 0;
-		if (pComponent->proc(hWnd, uMsg, wParam, lParam, &lRetUser))
+		if (pComponent->proc(hWnd, uMsg, wParam, lParam, &lRetUser) == 1)
 			return lRetUser;
 
 		if (pComponent->getPrevWndProc())
@@ -182,6 +182,51 @@ LRESULT StdHandlerCtlColorChange(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 	}
 	return((LRESULT)INVALID_HANDLE_VALUE);
 }
+
+//**************************************************************************
+
+BOOL CALLBACK EnumChildProcSendMouseMsg2Children(HWND hwnd, LPARAM lParam)
+{
+	CComponent *pComponent = dynamic_cast<CComponent*>((IComponent*)GetWindowLong(hwnd, GWL_USERDATA));
+	CMsg2EnumChild *pMsg = ((CMsg2EnumChild*)lParam);
+
+	if (pComponent && pMsg)
+	{
+		RECT oRect;
+		pComponent->getWinRect(&oRect);
+
+		POINT oPoint;
+		GetCursorPos(&oPoint);
+
+		if (
+			oPoint.x >= oRect.left && oPoint.x <= oRect.right &&
+			oPoint.y >= oRect.top && oPoint.y <= oRect.bottom
+		)
+		{
+			if (pComponent->proc(hwnd, pMsg->m_uMsg, pMsg->m_wParam, pMsg->m_lParam, 0) != 0)
+			{
+				pMsg->m_isProc = true;
+				return FALSE;
+			}
+		}
+	}
+
+	return TRUE;
+}
+
+bool SendMouseMsg2Children(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	CMsg2EnumChild oMsg;
+	oMsg.m_uMsg = msg;
+	oMsg.m_wParam = wParam;
+	oMsg.m_lParam = lParam;
+	oMsg.m_isProc = false;
+
+	EnumChildWindows(hwnd, (WNDENUMPROC)&EnumChildProcSendMouseMsg2Children, LONG(&oMsg));
+	return oMsg.m_isProc;
+}
+
+//**************************************************************************
 
 LRESULT StdHandlerSizeChange(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {

@@ -1,11 +1,11 @@
 
 /***********************************************************
-Copyright © Vitaliy Buturlin, Evgeny Danilovich, 2017, 2018
+Copyright © Vitaliy Buturlin, Evgeny Danilovich, 2017 - 2019
 See the license in LICENSE
 ***********************************************************/
 
-#ifndef __SXGUI_BASE_H
-#define __SXGUI_BASE_H
+#ifndef __BASE_H
+#define __BASE_H
 
 #include <stdio.h>
 #include "hint.h"
@@ -61,14 +61,31 @@ BOOL CALLBACK EnumChildProcMouseMove(HWND hWnd, LPARAM lParam);
 
 //**************************************************************************
 
-/*! установка основных обработчиков, без которых SXGUIWinApi будет работать не стабильно, а возможно и не будет работать,
+/*! установка основных обработчиков, без которых система будет работать не стабильно, а возможно и не будет работать,
 если возвращает 0 значит все в норме, иначе возвращает номер того обработчика который не удалось установить,
 данная функция вызывается только если не требуется каких либо дополнительных действий при обработке зарезервированных сообщений
 */
 void StdHandlerInitMsg(IComponent *pComponent);
 
+
+//! структура отправляемая в #EnumChildProcSendMouseMsg2Children в lParam
+struct CMsg2EnumChild
+{
+	UINT m_uMsg;
+	WPARAM m_wParam;
+	LPARAM m_lParam;
+	bool m_isProc;
+};
+
+//! функция обработчик передачи сообщения от мыши всем дочерним элементам
+BOOL CALLBACK EnumChildProcSendMouseMsg2Children(HWND hWnd, LPARAM lParam);
+
+//! отправка сообщения мыши всем дочерним элементам, возвращает true если кто-то обрабатывает
+bool SendMouseMsg2Children(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+
 //! обработчик события WM_SIZE
-LRESULT StdHandlerSizeChange(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT StdHandlerSizeChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 /*! обработчик событий WM_CTLCOLORSTATIC WM_CTLCOLOREDIT WM_CTLCOLORBTN WM_CTLCOLORLISTBOX,
 то есть обработка цветов дочерних элементов окна (static, edit,button, listbox)
@@ -88,10 +105,10 @@ LRESULT StdHandlerMouseMoveChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 LRESULT StdHandlerSetCursorChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //! обработчик события WM_COMMAND SC_MAXIMIZE
-//LRESULT StdHandlerMaximuzeWinChange(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+//LRESULT StdHandlerMaximuzeWinChange(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 //! обработчик события WM_DESTROY
-LRESULT StdHandlerWinDestroy(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT StdHandlerWinDestroy(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 //##########################################################################
 

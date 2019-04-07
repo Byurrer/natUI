@@ -696,6 +696,13 @@ struct IWindow : public virtual ITextual
 	
 	//!@}
 
+
+	//! установка/снятие окна поверх остальных
+	virtual void setTopMost(bool isTopMost) = 0;
+
+	//! возвращает установлено ли окно поверх остальных
+	virtual bool getTopMost() = 0;
+
 	//! установить стиль окна #WND_STYLE
 	virtual void setStyle(WND_STYLE style) = 0;
 
@@ -716,6 +723,9 @@ struct IWindow : public virtual ITextual
 
 	//! обработчик взова контекстного меню (клик ПКМ в рабочей области окна)
 	virtual void addHandlerCallCMenu(HandlerExWindow fnHandler) = 0;
+
+	//! добавить обработчик закрытия окна
+	virtual void addHandlerExit(HandlerExWindow fnHandler) = 0;
 };
 
 //#############################################################################
@@ -1370,10 +1380,11 @@ enum DIALOG_TYPE
 struct IManager
 {
 	/*! создает экземплляр объекта "Window", и возвращает указатель
-	\param style - стиль окна
-	\param pParent - родитель, если окно главное то родитель NULL
+	 \param style - стиль окна
+	 \param pParent - родитель, если окно главное то родитель NULL
+	 \param isTopMost - поверх всех окон
 	*/
-	virtual IWindow* newWnd(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent = 0, WND_STYLE style = WND_STYLE_DEFAULT) = 0;
+	virtual IWindow* newWnd(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent = 0, WND_STYLE style = WND_STYLE_DEFAULT, bool isTopMost=false) = 0;
 
 	//**********************************************************************
 

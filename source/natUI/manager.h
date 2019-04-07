@@ -17,7 +17,7 @@ public:
 
 	void Release(){ mem_del(this); }
 
-	IWindow* newWnd(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent = 0, WND_STYLE style = WND_STYLE_DEFAULT);
+	IWindow* newWnd(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent = 0, WND_STYLE style = WND_STYLE_DEFAULT, bool isTopMost = false);
 
 	//**********************************************************************
 	IButton* newButton(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent, BUTTON_IMAGE typeImage = BUTTON_IMAGE_NONE);

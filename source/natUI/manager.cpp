@@ -43,9 +43,9 @@ CManager::~CManager()
 
 //##########################################################################
 
-IWindow* CManager::newWnd(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent, WND_STYLE style)
+IWindow* CManager::newWnd(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent, WND_STYLE style, bool isTopMost)
 {
-	return new CWindow(szCaption, iX, iY, iWidth, iHeight, pParent, style);
+	return new CWindow(szCaption, iX, iY, iWidth, iHeight, pParent, style, isTopMost);
 }
 
 //**********************************************************************

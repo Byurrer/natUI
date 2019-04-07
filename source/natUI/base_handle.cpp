@@ -310,30 +310,40 @@ CHandlerEx* CHandle::getHandlerEx(CODE_MESSAGE_EX codeMsgEx)
 	return 0;
 }
 
-bool CHandle::procCodeReturn(HCR codeRet, LONG *pRet)
+int CHandle::procCodeReturn(HCR codeRet, LONG *pRet)
 {
 	if (codeRet == HANDLER_CODE_RETURN_DEFAULT)
-		return false;
+		return -1;
 	else if(codeRet == HANDLER_CODE_RETURN_SUPERCEDE)
 	{
 		if (pRet)
 			*pRet = 0;
 
-		return true;
+		return 1;
 	}
 	
-	return false;
+	return -1;
 }
 
 //**************************************************************************
 
-bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet)
+int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet)
 {
 	if (isMsgMouse(uMsg))
 	{
+		GUI_TYPE_ELEMENT type = getElementType();
+
+		//если сообщение пришло окну/групбоксу/тулбару тогда отправляем сообщение всем дочерним элементам и 
+		//если хоть кто-то из них обработает тогда не пускаем обработчик дальше
+		if (
+			(type == GUI_TYPE_ELEMENT_WINDOW || type == GUI_TYPE_ELEMENT_GROUPBOX || type == GUI_TYPE_ELEMENT_TOOLBAR) &&
+			SendMouseMsg2Children(hWnd, uMsg, wParam, lParam)
+			)
+			return -1;
+
 		CHandlerMouse *pHandlerMouse = getHandlerMouse(getCodeMouseOfMsg(uMsg));
 		if (!pHandlerMouse)
-			return false;
+			return 0;
 
 		CHandleMouseData oMouseData;
 		oMouseData.m_oLocalPos.x = GET_X_LPARAM(lParam);
@@ -347,7 +357,7 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 		if (uMsg == WM_MOUSEWHEEL)
 			oMouseData.m_iScroll = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 
-		HCR codeRet = pHandlerMouse->m_fnHandler((IComponent*)this, &oMouseData);
+		HCR codeRet = pHandlerMouse->m_fnHandler(dynamic_cast<IComponent*>(this), &oMouseData);
 		return procCodeReturn(codeRet, pRet);
 	}
 	else if (uMsg == WM_KEYDOWN || uMsg == WM_KEYUP)
@@ -362,7 +372,7 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 		if (uMsg == WM_KEYDOWN)
 			oKeyData.m_isFirstDown = (MID(lParam, 30, 31) == 0 ? true : false);
 
-		HCR codeRet = pHandlerKey->m_fnHandler((IComponent*)this, &oKeyData);
+		HCR codeRet = pHandlerKey->m_fnHandler(dynamic_cast<IComponent*>(this), &oKeyData);
 		return procCodeReturn(codeRet, pRet);
 	}
 	//если закрытие окна
@@ -380,7 +390,7 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 			PostQuitMessage(0);
 		}
 
-		return true;
+		return 1;
 	}
 	//если изменение размеров
 	else if (uMsg == WM_SIZE)
@@ -446,6 +456,8 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 			//изменение текста в edit
 			else if (iNotification == EN_CHANGE)
 				pHandle->procEx(CODE_MESSAGE_EX_LISTVIEW_CLICK);
+			else
+				return 0;
 		}
 
 		//иначе это команда для меню
@@ -460,7 +472,7 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 			{
 				CMenuPopup *pMenu = dynamic_cast<CMenuPopup*>(pWindow->getCurrCMenu());
 				if (!pMenu)
-					return false;
+					return 0;
 
 				pMenu->proc(CODE_MSG_MENU_SELECT, &oData);
 				pMenu->proc(CODE_MSG_MENU_CLOSE, &oData);
@@ -470,11 +482,13 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 			{
 				CMenuWindow *pMenu = dynamic_cast<CMenuWindow*>(pWindow->getMenu());
 				if (!pMenu)
-					return false;
+					return 0;
 
 				pMenu->proc(CODE_MSG_MENU_SELECT, &oData);
 				pMenu->proc(CODE_MSG_MENU_CLOSE, &oData);
 			}
+
+			return -1;
 		}
 	}
 	//если есть нотификация от дочерних элементов (listview)
@@ -483,15 +497,20 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 		NMHDR *pData = (NMHDR*)lParam;
 
 		if (!pData)
-			return false;
+			return 0;
 
 		CHandle *pHandle = dynamic_cast<CHandle*>((IComponent*)GetWindowLong(pData->hwndFrom, GWL_USERDATA));
 		if (!pHandle)
-			return false;
+			return 0;
 
 		//клик по listview
 		if (pData->code == NM_CLICK)
+		{
 			pHandle->procEx(CODE_MESSAGE_EX_LISTVIEW_CLICK);
+			return -1;
+		}
+		else
+			return 0;
 	}
 	//если вызвана активация главного меню (нажатие на один из пунктов горизонтального меню)
 	else if (uMsg == WM_INITMENU)
@@ -499,7 +518,7 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 		HMENU hMenu = (HMENU)wParam;
 		LONG lUD = GetUserData4Menu(hMenu);
 		if (lUD == 0)
-			return false;
+			return 0;
 
 		CWindow *pWindow = (CWindow*)this;
 		CMenuBase *pMenu = dynamic_cast<CMenuBase*>((IMenuBase*)lUD);
@@ -507,7 +526,12 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 		pWindow->setCurrCMenu(0);
 		
 		if (pMenu)
+		{
 			pMenu->proc(CODE_MSG_MENU_OPEN, &CHandlerMenuData());
+			return -1;
+		}
+		else
+			return 0;
 	}
 	
 	//если была инициализация контекстного меню
@@ -516,7 +540,7 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 		HMENU hMenu = (HMENU)wParam;
 		LONG lUD = GetUserData4Menu(hMenu);
 		if (lUD == 0)
-			return false;
+			return 0;
 
 		CWindow *pWindow = (CWindow*)this;
 		CMenuBase *pMenu = dynamic_cast<CMenuBase*>((IMenuBase*)lUD);
@@ -524,10 +548,15 @@ bool CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRe
 		pWindow->setCurrCMenu(dynamic_cast<IMenuPopup*>(pMenu));
 		
 		if (pMenu)
+		{
 			pMenu->proc(CODE_MSG_MENU_OPEN, &CHandlerMenuData());
+			return -1;
+		}
+		else
+			return 0;
 	}
 
-	return false;
+	return -1;
 }
 
 HANDLER_CODE_RETURN CHandle::procEx(CODE_MESSAGE_EX codeMsgEx, void *prt)

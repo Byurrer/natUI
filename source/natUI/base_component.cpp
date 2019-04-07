@@ -11,15 +11,13 @@ CComponent::CComponent()
 	m_aFollowParentSide[SIDE_LEFT] = false;
 
 	m_rcParentScreen.top = m_rcParentScreen.bottom = m_rcParentScreen.left = m_rcParentScreen.right = 0;
-	//m_isTransparentTextBk = true;
-
+	
 	m_aStretchSide[SIDE_TOP] = true;
 	m_aStretchSide[SIDE_BOTTOM] = true;
 	m_aStretchSide[SIDE_RIGHT] = true;
 	m_aStretchSide[SIDE_LEFT] = true;
 
 	m_iMinSizeWidth = m_iMinSizeHeight = 0;
-	//Font = 0;
 }
 
 CComponent::~CComponent()
@@ -261,6 +259,8 @@ bool CComponent::modifyExStyle(long style_add, long style_del)
 		if (!SetWindowLong(m_hWindow, GWL_EXSTYLE, GetWindowLong(m_hWindow, GWL_EXSTYLE)&~style_del))
 			return false;
 	}
+
+	SetWindowPos(m_hWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	return true;
 }
 
@@ -395,7 +395,9 @@ bool CComponent::setColorBrush(UINT uColor)
 {
 	m_uColorBrush = uColor;
 
-	DeleteObject(m_hBrush);
+	if (m_hBrush)
+		DeleteObject(m_hBrush);
+
 	m_hBrush = CreateSolidBrush(m_uColorBrush);
 	InvalidateRect(m_hWindow, 0, 1);
 	return true;

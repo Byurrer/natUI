@@ -130,7 +130,7 @@ public:
 	 \note если надо чтобы сообщение не уходило в стандартный обработчик, надо вернуть true и установить pRet
 	 \param pRet - возвращаемое оконным обработчиком значение, надо устанавливать только если функция возвращает true
 	*/
-	bool proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet);
+	int proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet);
 
 	/*! обработать специальное сообщение (если установлен для него обработчик)
 	 \param prt - указатель на структуру данных, передаваемую в функцию-обработчик
@@ -145,7 +145,7 @@ protected:
 	/*! обработка кода возврата из функции-обработчика codeRet, записывает в pRet значение если требуется, 
 	возвращает true если требуется вернуть значение в оконном обработчике (и не передавать сообщение дальше)
 	*/
-	bool procCodeReturn(HCR codeRet, LONG *pRet);
+	int procCodeReturn(HCR codeRet, LONG *pRet);
 
 
 	//! является ли сообщение мышинным

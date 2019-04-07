@@ -43,12 +43,14 @@ static UINT g_aWndStyle[] = {
 class CWindow : public CTextual, public virtual IWindow
 {
 public:
-	CWindow(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent = 0, WND_STYLE style = WND_STYLE_DEFAULT);
+	CWindow(const char *szCaption, int iX, int iY, int iWidth, int iHeight, IControl *pParent = 0, WND_STYLE style = WND_STYLE_DEFAULT, bool isTopMost=false);
 	~CWindow();
 
 	void setStyle(WND_STYLE style);
 	WND_STYLE getStyle();
 
+	void setTopMost(bool isTopMost);
+	bool getTopMost();
 
 	bool setColorBrush(UINT uColor);
 	UINT getColorBrush();
@@ -67,11 +69,13 @@ public:
 
 	void addHandlerSize(HandlerExWindow fnHandler);
 	void addHandlerCallCMenu(HandlerExWindow fnHandler);
+	void addHandlerExit(HandlerExWindow fnHandler);
 
 protected:
 	WND_STYLE m_style;
 	IMenuWindow *m_pMenu;
 	IMenuPopup *m_pCMenu;
+	bool m_isTopMost;
 };
 
 #endif
