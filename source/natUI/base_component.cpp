@@ -177,8 +177,14 @@ void CComponent::setSize(const POINT *pSize)
 	RECT oNewRect;
 	oNewRect.left = oPos.x;
 	oNewRect.top = oPos.y;
-	oNewRect.right = oNewRect.left + pSize->x;
-	oNewRect.bottom = oNewRect.top + pSize->y;
+	oNewRect.right = oNewRect.left + abs(pSize->x);
+	oNewRect.bottom = oNewRect.top + abs(pSize->y);
+
+	if (pSize->x < 0 && pSize->y < 0)
+	{
+		AdjustWindowRect(&oNewRect, GetWindowStyle(m_hWindow), 0);
+	}
+
 	setWinRect(&oNewRect, false);
 }
 
