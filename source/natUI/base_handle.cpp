@@ -463,7 +463,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		//иначе это команда для меню
 		else
 		{
-			CWindow *pWindow = (CWindow*)this;
+			CWindow *pWindow = dynamic_cast<CWindow*>(this);
 			int iId = LOWORD(wParam);
 			CHandlerMenuData oData;
 			oData.m_idSelected = iId;
@@ -520,7 +520,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		if (lUD == 0)
 			return 0;
 
-		CWindow *pWindow = (CWindow*)this;
+		CWindow *pWindow = dynamic_cast<CWindow*>(this);
 		CMenuBase *pMenu = dynamic_cast<CMenuBase*>((IMenuBase*)lUD);
 
 		pWindow->setCurrCMenu(0);
@@ -542,7 +542,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		if (lUD == 0)
 			return 0;
 
-		CWindow *pWindow = (CWindow*)this;
+		CWindow *pWindow = dynamic_cast<CWindow*>(this);
 		CMenuBase *pMenu = dynamic_cast<CMenuBase*>((IMenuBase*)lUD);
 
 		pWindow->setCurrCMenu(dynamic_cast<IMenuPopup*>(pMenu));
@@ -571,9 +571,9 @@ HANDLER_CODE_RETURN CHandle::procEx(CODE_MESSAGE_EX codeMsgEx, void *prt)
 			codeMsgEx == CODE_MESSAGE_EX_WINDOW_MOVE ||
 			codeMsgEx == CODE_MESSAGE_EX_WINDOW_CALLCMENU
 			)
-			return ((HandlerExWindow)(pHandlerEx->m_pHandler))((IComponent*)this, (CHandlerDataWindow*)prt);
+			return ((HandlerExWindow)(pHandlerEx->m_pHandler))(dynamic_cast<IComponent*>(this), (CHandlerDataWindow*)prt);
 		else
-			return ((HandlerExCommon)(pHandlerEx->m_pHandler))((IComponent*)this);
+			return ((HandlerExCommon)(pHandlerEx->m_pHandler))(dynamic_cast<IComponent*>(this));
 	}
 
 	return HANDLER_CODE_RETURN_DEFAULT;

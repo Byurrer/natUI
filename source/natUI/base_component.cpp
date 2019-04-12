@@ -320,7 +320,10 @@ void CComponent::updateSize()
 	//MapWindowPoints(NULL, m_hParent, (LPPOINT)&rect, 2);
 
 	//если не имзеняет память, то значения за пределаеми (-30000, 30000) сигнализируют о сворачивании окна, в этом случае обработка не нужна
-	if (abs(m_rcOffsetParent.left) > 30000 || abs(m_rcOffsetParent.right) > 30000 || abs(m_rcOffsetParent.top) > 30000 || abs(m_rcOffsetParent.bottom) > 30000)
+	if (
+		(abs(m_rcOffsetParent.left) > 30000 || abs(m_rcOffsetParent.right) > 30000 || abs(m_rcOffsetParent.top) > 30000 || abs(m_rcOffsetParent.bottom) > 30000) ||
+		(m_rcOffsetParent.left == 0 && m_rcOffsetParent.right == 0 && m_rcOffsetParent.top == 0 && m_rcOffsetParent.bottom == 0)
+		)
 		return;
 
 	//смещение по всем направлениям
