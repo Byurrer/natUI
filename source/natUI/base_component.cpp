@@ -5,10 +5,10 @@ CComponent::CComponent()
 {
 	m_pHint = 0;
 
-	m_aFollowParentSide[SIDE_TOP] = false;
+	m_aFollowParentSide[SIDE_TOP] = true;
 	m_aFollowParentSide[SIDE_BOTTOM] = false;
 	m_aFollowParentSide[SIDE_RIGHT] = false;
-	m_aFollowParentSide[SIDE_LEFT] = false;
+	m_aFollowParentSide[SIDE_LEFT] = true;
 
 	m_rcParentScreen.top = m_rcParentScreen.bottom = m_rcParentScreen.left = m_rcParentScreen.right = 0;
 	
