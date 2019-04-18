@@ -4,8 +4,8 @@ Copyright © Vitaliy Buturlin, Evgeny Danilovich, 2017 - 2019
 See the license in LICENSE
 ***********************************************************/
 
-#ifndef VK_H
-#define VK_H
+#ifndef VIRTUAL_KEY_H
+#define VIRTUAL_KEY_H
 
 //! коды клавиш
 enum VKEY

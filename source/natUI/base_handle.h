@@ -58,6 +58,21 @@ See the license in LICENSE
 
 //!@}
 
+/*! \name Коды возвратов из функции proc
+@{
+*/
+
+//! сообщение обработано, передавать сообщение в стандартный обработчик
+#define HPROC_RET_DEFAULT	-1
+
+//! сообщение не обработано
+#define HPROC_RET_NOTCOM	0
+
+//! сообщение обработано, не передавать в стандартный обработчик
+#define HPROC_RET_SUPERCEDE	1
+
+//!@}
+
 //##########################################################################
 
 //! возвращает WINDOW_SIZE_STATE по wParam сообщения WM_SIZE
@@ -105,6 +120,15 @@ struct CHandlerKey
 	HandlerKey m_fnHandler;
 };
 
+//! обработчик сообщения WM_TIMER
+struct CHandlerTimer
+{
+	CHandlerTimer(){}
+	CHandlerTimer(ID idTimer, HandlerTimer fnHandler){ m_idTimer = idTimer; m_fnHandler = fnHandler; }
+	ID m_idTimer;
+	HandlerTimer m_fnHandler;
+};
+
 //##########################################################################
 
 //! класс обработки сообщений
@@ -121,13 +145,15 @@ public:
 
 	void addHandlerKey(CODE_MESSAGE_KEY codeMsgKey, HandlerKey fnHandler);
 
+	void addHandlerTimer(UINT uiMlsec, HandlerTimer fnHandler, ID idTimer = -1);
+
 	/*! добавить обработчик специальных сообщений
 	 \param pHandler - обработчик
 	*/
 	void addHandlerEx(CODE_MESSAGE_EX codeMsgEx, void *pHandler);
 
 	/*! обработать сообщение, 
-	 \note если надо чтобы сообщение не уходило в стандартный обработчик, надо вернуть true и установить pRet
+	 \note подробности значений возвратов см. в дефайнах HPROC_RET_
 	 \param pRet - возвращаемое оконным обработчиком значение, надо устанавливать только если функция возвращает true
 	*/
 	int proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet);
@@ -145,7 +171,7 @@ protected:
 	/*! обработка кода возврата из функции-обработчика codeRet, записывает в pRet значение если требуется, 
 	возвращает true если требуется вернуть значение в оконном обработчике (и не передавать сообщение дальше)
 	*/
-	int procCodeReturn(HCR codeRet, LONG *pRet);
+	int procCodeReturn(HANDLER_CODE_RETURN codeRet, LONG *pRet);
 
 
 	//! является ли сообщение мышинным
@@ -168,6 +194,9 @@ protected:
 	//! возвращает объект-обработчик специальных сообщений
 	CHandlerEx* getHandlerEx(CODE_MESSAGE_EX codeEx);
 
+	//! возвращает объект обработчик таймера по id
+	CHandlerTimer* getHandlerTimer(ID idTimer);
+
 
 	//! массив объектов-обработчиков для сообщений мыши
 	Array<CHandlerMouse*> m_aHandlersMouse;
@@ -175,8 +204,11 @@ protected:
 	//! массив объектов-обработчиков для сообщений клавиш клавиатуры
 	Array<CHandlerKey*> m_aHandlersKey;
 
-	//! //! массив объектов-обработчиков специальных сообщений
+	//! массив объектов-обработчиков специальных сообщений
 	Array<CHandlerEx*> m_aHandlersEx;
+
+	//! массив объектов обработчиков таймеров
+	Array<CHandlerTimer*> m_aHandlersTime;
 
 	//! карта соответствия winapi кодов клавиш enum VKEY
 	Array<VKEY> m_aVkeys;

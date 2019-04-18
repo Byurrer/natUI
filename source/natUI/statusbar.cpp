@@ -149,10 +149,10 @@ void CStatusBar::update()
 		{
 			float coef = ArrCoef[i] / 100.0;
 			//MessageBox(0,ToPointChar(coef),0,0);
-			float part_width = Arr[i] - (i > 0 ? Arr[i - 1] : 0);
+			float part_width = (float)(Arr[i] - (i > 0 ? Arr[i - 1] : 0));
 			float new_part_width = part_width + (int(width * coef));
 			//MessageBox(0,ToPointChar(ToString(width) + "|" + ToString(coef)),ToPointChar(new_part_width),0);
-			NewArr[i] = new_part_width + (i > 0 ? NewArr[i - 1] : 0);
+			NewArr[i] = (int)(new_part_width + (i > 0 ? NewArr[i - 1] : 0));
 			if (Arr[i] == NewArr[i])
 				Updatem_oOldRect = false;
 			//MessageBox(0,ToPointChar(ToString(Arr[i]) + "|" + ToString(NewArr[i])),0,0);

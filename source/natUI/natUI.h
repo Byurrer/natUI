@@ -16,6 +16,8 @@ See the license in LICENSE
 #ifndef __NATUI_H
 #define __NATUI_H
 
+#pragma warning(disable: 4250)
+
 #include <common/types.h>
 #include <windows.h>
 
@@ -169,10 +171,11 @@ enum HANDLER_CODE_RETURN
 	HANDLER_CODE_RETURN_SUPERCEDE = 1,
 };
 
-typedef HANDLER_CODE_RETURN HCR;
-
 //! тип функции обработчика для специальных сообщений
 typedef HANDLER_CODE_RETURN(*HandlerExCommon) (IComponent*);
+
+//! тип функции обработчика для таймеров
+typedef HANDLER_CODE_RETURN(*HandlerTimer) (IComponent*);
 
 //**************************************************************************
 
@@ -352,6 +355,17 @@ struct IHandle : public virtual IControl
 
 	//! добавить обработчик для сообщений клавиатуры
 	virtual void addHandlerKey(CODE_MESSAGE_KEY codeMsgKey, HandlerKey fnHandler) = 0;
+
+	/*! добавить обработчик таймера
+	 \param uiMlsec время в милисекундах
+	 \param fnHandler функция обработчик
+	 \param idTimer числовой идентификатор таймера
+	 \note Если идентификатор указан -1 значит будет сгенерирован свой уникальный идентификатор на момент генерации среди существующих таймеров для данного элемента,
+	  не рекомендуется использовать если будет установлено несколько таймеров
+	 \note Если таймер с таким идентификаторов существует, то функция старая функция-обработчик будет заменена
+	 \note Если надо просто посылать сообщение в цикл сообщений то fnHandler можно не указывать
+	*/
+	virtual void addHandlerTimer(UINT uiMlsec, HandlerTimer fnHandler, ID idTimer=-1) = 0;
 };
 
 //#############################################################################

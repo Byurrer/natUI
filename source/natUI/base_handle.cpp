@@ -195,6 +195,45 @@ void CHandle::addHandlerKey(CODE_MESSAGE_KEY codeMsgKey, HandlerKey fnHandler)
 	}
 }
 
+void CHandle::addHandlerTimer(UINT uiMlsec, HandlerTimer fnHandler, ID idTimer)
+{
+	ID idKeyTimer = -1;
+
+	if (idTimer == -1)
+	{
+		ID idLast = -1;
+		for (int i = 0, il = m_aHandlersTime.size(); i < il; ++i)
+		{
+			CHandlerTimer *pHandlerTimer = m_aHandlersTime[i];
+			if (pHandlerTimer->m_idTimer > idLast)
+				idLast = pHandlerTimer->m_idTimer;
+		}
+
+		idTimer = idLast+1;
+	}
+	else
+	{
+		for (int i = 0, il = m_aHandlersTime.size(); i < il; ++i)
+		{
+			CHandlerTimer *pHandlerTimer = m_aHandlersTime[i];
+			if (pHandlerTimer->m_idTimer == idTimer)
+			{
+				idKeyTimer = i;
+				break;
+			}
+		}
+	}
+
+	if (idKeyTimer == -1)
+		m_aHandlersTime.push_back(new CHandlerTimer(idTimer, fnHandler));
+	else
+	{
+		m_aHandlersTime[idKeyTimer]->m_fnHandler = fnHandler;
+	}
+
+	SetTimer(m_hWindow, idTimer, uiMlsec, 0);
+}
+
 void CHandle::addHandlerEx(CODE_MESSAGE_EX codeMsgEx, void *pHandler)
 {
 	bool isUnic = true;
@@ -310,19 +349,31 @@ CHandlerEx* CHandle::getHandlerEx(CODE_MESSAGE_EX codeMsgEx)
 	return 0;
 }
 
-int CHandle::procCodeReturn(HCR codeRet, LONG *pRet)
+CHandlerTimer* CHandle::getHandlerTimer(ID idTimer)
+{
+	for (int i = 0; i < m_aHandlersTime.size(); ++i)
+	{
+		CHandlerTimer *pHandlerTimer = m_aHandlersTime[i];
+		if (pHandlerTimer->m_idTimer == idTimer)
+			return pHandlerTimer;
+	}
+
+	return 0;
+}
+
+int CHandle::procCodeReturn(HANDLER_CODE_RETURN codeRet, LONG *pRet)
 {
 	if (codeRet == HANDLER_CODE_RETURN_DEFAULT)
-		return -1;
+		return HPROC_RET_DEFAULT;
 	else if(codeRet == HANDLER_CODE_RETURN_SUPERCEDE)
 	{
 		if (pRet)
 			*pRet = 0;
 
-		return 1;
+		return HPROC_RET_SUPERCEDE;
 	}
 	
-	return -1;
+	return HPROC_RET_DEFAULT;
 }
 
 //**************************************************************************
@@ -339,11 +390,11 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 			(type == GUI_TYPE_ELEMENT_WINDOW || type == GUI_TYPE_ELEMENT_GROUPBOX || type == GUI_TYPE_ELEMENT_TOOLBAR) &&
 			SendMouseMsg2Children(hWnd, uMsg, wParam, lParam)
 			)
-			return -1;
+			return HPROC_RET_DEFAULT;
 
 		CHandlerMouse *pHandlerMouse = getHandlerMouse(getCodeMouseOfMsg(uMsg));
 		if (!pHandlerMouse)
-			return 0;
+			return HPROC_RET_NOTCOM;
 
 		CHandleMouseData oMouseData;
 		oMouseData.m_oLocalPos.x = GET_X_LPARAM(lParam);
@@ -357,14 +408,14 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		if (uMsg == WM_MOUSEWHEEL)
 			oMouseData.m_iScroll = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 
-		HCR codeRet = pHandlerMouse->m_fnHandler(dynamic_cast<IComponent*>(this), &oMouseData);
+		HANDLER_CODE_RETURN codeRet = pHandlerMouse->m_fnHandler(dynamic_cast<IComponent*>(this), &oMouseData);
 		return procCodeReturn(codeRet, pRet);
 	}
 	else if (uMsg == WM_KEYDOWN || uMsg == WM_KEYUP)
 	{
 		CHandlerKey *pHandlerKey = getHandlerKey(getCodeKeyOfMsg(uMsg));
 		if (!pHandlerKey)
-			return false;
+			return HPROC_RET_NOTCOM;
 
 		CHandleKeyData oKeyData;
 		oKeyData.m_key = m_aVkeys[wParam];
@@ -372,13 +423,13 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		if (uMsg == WM_KEYDOWN)
 			oKeyData.m_isFirstDown = (MID(lParam, 30, 31) == 0 ? true : false);
 
-		HCR codeRet = pHandlerKey->m_fnHandler(dynamic_cast<IComponent*>(this), &oKeyData);
+		HANDLER_CODE_RETURN codeRet = pHandlerKey->m_fnHandler(dynamic_cast<IComponent*>(this), &oKeyData);
 		return procCodeReturn(codeRet, pRet);
 	}
 	//если закрытие окна
 	else if (uMsg == WM_CLOSE)
 	{
-		HCR codeRet = procEx(CODE_MESSAGE_EX_WINDOW_CLOSE, &CHandlerDataWindow());
+		HANDLER_CODE_RETURN codeRet = procEx(CODE_MESSAGE_EX_WINDOW_CLOSE, &CHandlerDataWindow());
 		
 		if (pRet)
 			*pRet = 0;
@@ -390,7 +441,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 			PostQuitMessage(0);
 		}
 
-		return 1;
+		return HPROC_RET_SUPERCEDE;
 	}
 	//если изменение размеров
 	else if (uMsg == WM_SIZE)
@@ -400,7 +451,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		oDataExWindow.m_oSizeNew.x = LOWORD(lParam);
 		oDataExWindow.m_oSizeNew.y = HIWORD(lParam);
 			
-		HCR codeRet = procEx(CODE_MESSAGE_EX_WINDOW_SIZE, &oDataExWindow);
+		HANDLER_CODE_RETURN codeRet = procEx(CODE_MESSAGE_EX_WINDOW_SIZE, &oDataExWindow);
 		return procCodeReturn(codeRet, pRet);
 	}
 	//если перемещение объекта
@@ -410,7 +461,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		oDataExWindow.m_oPosNew.x = (int)(short)LOWORD(lParam);
 		oDataExWindow.m_oPosNew.y = (int)(short)HIWORD(lParam);
 
-		HCR codeRet = procEx(CODE_MESSAGE_EX_WINDOW_MOVE, &oDataExWindow);
+		HANDLER_CODE_RETURN codeRet = procEx(CODE_MESSAGE_EX_WINDOW_MOVE, &oDataExWindow);
 		return procCodeReturn(codeRet, pRet);
 	}
 	//если была попытка вызова контекстного меню (клик ПКМ)
@@ -420,7 +471,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		IComponent *pComponent = ((IComponent*)GetWindowLong(hWnd, GWL_USERDATA));
 
 		if (!pComponent)
-			return false;
+			return HPROC_RET_NOTCOM;
 
 		CHandlerDataWindow oDataExWindow;
 		oDataExWindow.m_oPosCMenu.x = GET_X_LPARAM(lParam);
@@ -457,7 +508,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 			else if (iNotification == EN_CHANGE)
 				pHandle->procEx(CODE_MESSAGE_EX_LISTVIEW_CLICK);
 			else
-				return 0;
+				return HPROC_RET_NOTCOM;
 		}
 
 		//иначе это команда для меню
@@ -472,7 +523,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 			{
 				CMenuPopup *pMenu = dynamic_cast<CMenuPopup*>(pWindow->getCurrCMenu());
 				if (!pMenu)
-					return 0;
+					return HPROC_RET_NOTCOM;
 
 				pMenu->proc(CODE_MSG_MENU_SELECT, &oData);
 				pMenu->proc(CODE_MSG_MENU_CLOSE, &oData);
@@ -482,13 +533,13 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 			{
 				CMenuWindow *pMenu = dynamic_cast<CMenuWindow*>(pWindow->getMenu());
 				if (!pMenu)
-					return 0;
+					return HPROC_RET_NOTCOM;
 
 				pMenu->proc(CODE_MSG_MENU_SELECT, &oData);
 				pMenu->proc(CODE_MSG_MENU_CLOSE, &oData);
 			}
 
-			return -1;
+			return HPROC_RET_DEFAULT;
 		}
 	}
 	//если есть нотификация от дочерних элементов (listview)
@@ -497,20 +548,20 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		NMHDR *pData = (NMHDR*)lParam;
 
 		if (!pData)
-			return 0;
+			return HPROC_RET_NOTCOM;
 
 		CHandle *pHandle = dynamic_cast<CHandle*>((IComponent*)GetWindowLong(pData->hwndFrom, GWL_USERDATA));
 		if (!pHandle)
-			return 0;
+			return HPROC_RET_NOTCOM;
 
 		//клик по listview
 		if (pData->code == NM_CLICK)
 		{
 			pHandle->procEx(CODE_MESSAGE_EX_LISTVIEW_CLICK);
-			return -1;
+			return HPROC_RET_DEFAULT;
 		}
 		else
-			return 0;
+			return HPROC_RET_NOTCOM;
 	}
 	//если вызвана активация главного меню (нажатие на один из пунктов горизонтального меню)
 	else if (uMsg == WM_INITMENU)
@@ -518,7 +569,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		HMENU hMenu = (HMENU)wParam;
 		LONG lUD = GetUserData4Menu(hMenu);
 		if (lUD == 0)
-			return 0;
+			return HPROC_RET_NOTCOM;
 
 		CWindow *pWindow = dynamic_cast<CWindow*>(this);
 		CMenuBase *pMenu = dynamic_cast<CMenuBase*>((IMenuBase*)lUD);
@@ -528,10 +579,10 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		if (pMenu)
 		{
 			pMenu->proc(CODE_MSG_MENU_OPEN, &CHandlerMenuData());
-			return -1;
+			return HPROC_RET_DEFAULT;
 		}
 		else
-			return 0;
+			return HPROC_RET_NOTCOM;
 	}
 	
 	//если была инициализация контекстного меню
@@ -540,7 +591,7 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		HMENU hMenu = (HMENU)wParam;
 		LONG lUD = GetUserData4Menu(hMenu);
 		if (lUD == 0)
-			return 0;
+			return HPROC_RET_NOTCOM;
 
 		CWindow *pWindow = dynamic_cast<CWindow*>(this);
 		CMenuBase *pMenu = dynamic_cast<CMenuBase*>((IMenuBase*)lUD);
@@ -550,13 +601,29 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		if (pMenu)
 		{
 			pMenu->proc(CODE_MSG_MENU_OPEN, &CHandlerMenuData());
-			return -1;
+			return HPROC_RET_DEFAULT;
 		}
 		else
-			return 0;
+			return HPROC_RET_NOTCOM;
 	}
 
-	return -1;
+	//если сообщение таймера
+	else if (uMsg == WM_TIMER)
+	{
+		ID idTimer = wParam;
+
+		CHandlerTimer *pHandlerTimer = getHandlerTimer(idTimer);
+
+		if (pHandlerTimer)
+		{
+			if (pHandlerTimer->m_fnHandler)
+				pHandlerTimer->m_fnHandler(dynamic_cast<IComponent*>(this));
+
+			return HPROC_RET_SUPERCEDE;
+		}
+	}
+
+	return HPROC_RET_DEFAULT;
 }
 
 HANDLER_CODE_RETURN CHandle::procEx(CODE_MESSAGE_EX codeMsgEx, void *prt)
