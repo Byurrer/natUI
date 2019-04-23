@@ -1,5 +1,33 @@
 
 #include "base_component.h"
+#include "base.h"
+
+//##########################################################################
+
+Array<LPCSTR> g_aStdCursorCode;
+Array<HCURSOR> g_aStdCursor;
+
+void InitCursor()
+{
+	g_aStdCursorCode[STD_CURSOR_ARROW] = IDC_ARROW;
+	g_aStdCursorCode[STD_CURSOR_CROSS] = IDC_CROSS;
+	g_aStdCursorCode[STD_CURSOR_IBEAM] = IDC_IBEAM;
+	g_aStdCursorCode[STD_CURSOR_SIZENESW] = IDC_SIZENESW;
+	g_aStdCursorCode[STD_CURSOR_SIZENWSE] = IDC_SIZENWSE;
+	g_aStdCursorCode[STD_CURSOR_SIZEWE] = IDC_SIZEWE;
+	g_aStdCursorCode[STD_CURSOR_SIZENS] = IDC_SIZENS;
+	g_aStdCursorCode[STD_CURSOR_SIZEALL] = IDC_SIZEALL;
+	g_aStdCursorCode[STD_CURSOR_UPARROW] = IDC_UPARROW;
+	g_aStdCursorCode[STD_CURSOR_WAIT] = IDC_WAIT;
+	g_aStdCursorCode[STD_CURSOR_HAND] = IDC_HAND;
+
+	for (int i = 0, il = g_aStdCursorCode.size(); i < il; ++i)
+	{
+		g_aStdCursor.push_back(LoadCursor(NULL, g_aStdCursorCode[i]));
+	}
+}
+
+//##########################################################################
 
 CComponent::CComponent()
 {
@@ -18,6 +46,9 @@ CComponent::CComponent()
 	m_aStretchSide[SIDE_LEFT] = true;
 
 	m_iMinSizeWidth = m_iMinSizeHeight = 0;
+
+	m_idCursor = CURSOR_NULL;
+	m_hCursor = 0;
 }
 
 CComponent::~CComponent()
@@ -302,6 +333,38 @@ const char* CComponent::getHintText()
 		return m_pHint->getText();
 
 	return 0;
+}
+
+void CComponent::setCursor(ID idCursor)
+{
+	m_idCursor = idCursor;
+
+	if (idCursor < g_aStdCursor.size())
+		m_hCursor = g_aStdCursor[idCursor];
+	else if (idCursor >= g_aStdCursor.size())
+		m_hCursor = LoadCursor(NULL, MAKEINTRESOURCE(idCursor));
+	else
+	{
+		DeleteObject(m_hCursor);
+		m_hCursor = 0;
+	}
+
+	if (m_idCursor != CURSOR_NULL)
+		SetClassLong(m_hWindow, GCL_HCURSOR, (LONG)m_hCursor);
+	else if (m_idCursor != CURSOR_EMPTY)
+		SetClassLong(m_hWindow, GCL_HCURSOR, (LONG)g_aStdCursor[STD_CURSOR_ARROW]);
+	else
+		SetClassLong(m_hWindow, GCL_HCURSOR, 0);
+}
+
+ID CComponent::getCursor()
+{
+	return m_idCursor;
+}
+
+HCURSOR CComponent::getHCursor()
+{
+	return m_hCursor;
 }
 
 void CComponent::updateSize()

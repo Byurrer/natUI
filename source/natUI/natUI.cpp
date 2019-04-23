@@ -54,6 +54,10 @@ NATUI_API IManager* ManagerInit()
 	if (!g_pManager)
 		g_pManager = new CManager();
 
+	// если не инициализированы стандартные курсоры
+	if (g_aStdCursor.size() == 0 && g_aStdCursorCode.size() == 0)
+		InitCursor();
+
 	return g_pManager;
 }
 

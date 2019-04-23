@@ -30,6 +30,18 @@ struct CHandlerSysData
 	bool m_needPassOn;
 };
 
+//##########################################################################
+
+//! массив с IDC_ идентификаторами стандартных курсоров
+extern Array<LPCSTR> g_aStdCursorCode;
+
+//! массив HCURSOR стандартных курсоров
+extern Array<HCURSOR> g_aStdCursor;
+
+//! инициализация стандартных курсоров
+void InitCursor();
+
+//##########################################################################
 
 class CComponent : public CHandle, public virtual IComponent
 {
@@ -71,6 +83,10 @@ public:
 	void setHintText(const char *szStr);
 	const char* getHintText();
 	void getHintText(char *szBuf);
+
+	void setCursor(ID idCursor);
+	ID getCursor();
+	HCURSOR getHCursor();
 
 	bool setColorBrush(UINT uColor);
 	UINT getColorBrush();
@@ -122,6 +138,9 @@ protected:
 
 	//! массив обработчиков сообщений
 	Array<CHandlerSysData> m_aHandlers;
+
+	ID m_idCursor;
+	HCURSOR m_hCursor;
 
 
 	//! цвет заливки формы

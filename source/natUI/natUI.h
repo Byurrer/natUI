@@ -394,6 +394,53 @@ struct IHandle : public virtual IControl
 
 //!@}
 
+/*! \name Дефайны курсоров
+@{*/
+
+//! удалить курсор
+#define CURSOR_EMPTY	-2
+
+//! стандартный курсор
+#define CURSOR_NULL		-1
+
+//! курсор со стрелкой
+#define STD_CURSOR_ARROW	0
+
+//! перекрестье
+#define STD_CURSOR_CROSS	1
+
+//! вставка текста
+#define STD_CURSOR_IBEAM	2
+
+//! стрелки (верхняя нижняя и нижняя левая)
+#define STD_CURSOR_SIZENESW	3
+
+//! стрелки (верхняя левая и правя нижняя)
+#define STD_CURSOR_SIZENWSE	4
+
+//! горизонтальные стрелки
+#define STD_CURSOR_SIZEWE	5
+
+//! вертикальные стрелки
+#define STD_CURSOR_SIZENS	6
+
+//! стрелки в 4 стороны
+#define STD_CURSOR_SIZEALL	7
+
+//! стрелка вверх
+#define STD_CURSOR_UPARROW	8
+
+//! песочные часы
+#define STD_CURSOR_WAIT		9
+
+//! рука
+#define STD_CURSOR_HAND		10
+
+//! стрелка с вопросом
+#define STD_CURSOR_HELP		11
+
+//!@}
+
 /*! интерфейс component - расширенное управление (позиция, графика, габариты и прочее)
 */
 struct IComponent : public virtual IHandle
@@ -462,6 +509,14 @@ struct IComponent : public virtual IHandle
 	virtual const char* getHintText() = 0;
 
 	//!@}
+
+	/*! установить курсор
+	 \param idCursor идентификатор курсора, дефайны STD_CURSOR_ для установки стандартных курсоров, либо дефайны CURSOR_, либо идентификатор курсора из ресурсов
+	*/
+	virtual void setCursor(ID idCursor) = 0;
+
+	//! возвращает идентификатор курсора
+	virtual ID getCursor() = 0;
 
 	
 	/*! \name Методы для цветов элемента
@@ -1482,7 +1537,7 @@ struct IManager
 	\patam szStdPath путь относительно которого открывать диалог
 	\patam szFilter фильтр расширений
 	*/
-	void dialogSelectFile(DIALOG_TYPE type, char *szPath, char *szName, const char *szStdPath, const char *szFilter = 0);
+	virtual void dialogSelectFile(DIALOG_TYPE type, char *szPath, char *szName, const char *szStdPath, const char *szFilter = 0) = 0;
 };
 
 //! инициализация менеджера

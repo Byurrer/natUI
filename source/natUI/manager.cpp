@@ -140,7 +140,7 @@ IMenuPopup* CManager::newMenuContext(UINT uIdRes, int iIndex)
 
 //##########################################################################
 
-void dialogSelectFile(DIALOG_TYPE type, char *szPath, char *szName, const char *szStdPath, const char *szFilter)
+void CManager::dialogSelectFile(DIALOG_TYPE type, char *szPath, char *szName, const char *szStdPath, const char *szFilter)
 {
 	OPENFILENAME oOFN;
 

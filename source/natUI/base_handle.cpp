@@ -380,10 +380,10 @@ int CHandle::procCodeReturn(HANDLER_CODE_RETURN codeRet, LONG *pRet)
 
 int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet)
 {
-	if (isMsgMouse(uMsg))
-	{
 		GUI_TYPE_ELEMENT type = getElementType();
 
+	if (isMsgMouse(uMsg))
+	{
 		//если сообщение пришло окну/групбоксу/тулбару тогда отправляем сообщение всем дочерним элементам и 
 		//если хоть кто-то из них обработает тогда не пускаем обработчик дальше
 		if (
@@ -623,7 +623,20 @@ int CHandle::proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG *pRet
 		}
 	}
 
-	return HPROC_RET_DEFAULT;
+	//
+	else if (uMsg == WM_SETCURSOR)
+	{
+		CComponent *pComponent = dynamic_cast<CComponent*>(this);
+
+		if (pComponent && pComponent->getCursor() != CURSOR_NULL)
+		{
+			SetCursor(pComponent->getHCursor());
+			*pRet = 1;
+			return 1;
+		}
+	}
+
+	return -1;
 }
 
 HANDLER_CODE_RETURN CHandle::procEx(CODE_MESSAGE_EX codeMsgEx, void *prt)
